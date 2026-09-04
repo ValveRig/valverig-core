@@ -1,0 +1,14 @@
+[package]
+name = "valverig-core"
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.88"
+description = "The ValveRig engine: a rack of modules, the controls on it, presets in and out, and an allocation-free process() that runs anywhere"
+license = "MIT"
+repository = "https://github.com/ValveRig/valverig-core"
+
+[dependencies]
+valverig-dsp = "0.0.1"
+valverig-format = "0.0.1"
+valverig-nam = "0.0.1"
+thiserror = "2"

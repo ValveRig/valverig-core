@@ -1,0 +1,97 @@
+# Two captures in parallel, A hard left and B hard right through one cabinet
+# each, into a reverb. Every shape the format has is in here: a module stage,
+# a parallel stage, assets of both kinds, set and unset parameters, a
+# bypassed module, and presentation hints.
+#
+# The two capture hashes are the real content addresses of the reference
+# models in valverig-nam; the cabinet is a placeholder address, since no
+# impulse response ships with this crate. Nothing here opens a file: a
+# resolver decides where to look, and the hash is what confirms it looked in
+# the right place.
+format_version = 1
+name = "Plexi + Tweed · Wide"
+author = "ValveRig"
+notes = "Lane A hard left, lane B hard right: the stereo wide rig."
+
+[assets.plexi]
+kind = "nam"
+hash = "blake3:586a3e4fc781053a9bc0f347d4e0814174d1ea9bca04ffc0fd21147f16251d67"
+file = "a2.nam"
+
+[assets.tweed]
+kind = "nam"
+hash = "blake3:f8a4976325998419c11cd2f3b10e6976cdb5e6fd950c5a91f33cd84023115d19"
+file = "wavenet_a1_standard.nam"
+
+[assets.cab]
+kind = "ir"
+hash = "blake3:0000000000000000000000000000000000000000000000000000000000000000"
+sample_rate = 48000.0
+
+[[stage]]
+type = "std.gain"
+name = "input"
+[stage.params]
+level_db = 0.0
+
+[[stage]]
+type = "std.gate"
+name = "gate"
+[stage.params]
+threshold_db = -50.0
+
+[[stage]]
+type = "std.compressor"
+name = "compressor"
+bypass = true
+
+[[stage]]
+[[stage.lane]]
+name = "A"
+pan = -1.0
+level_db = 0.0
+[[stage.lane.module]]
+type = "std.capture"
+name = "A.capture"
+asset = "plexi"
+[stage.lane.module.ui]
+label = "Plexi"
+[[stage.lane.module]]
+type = "std.eq"
+name = "A.eq"
+[stage.lane.module.params]
+bass_db = 1.5
+[[stage.lane.module]]
+type = "std.cabinet"
+name = "A.cabinet"
+asset = "cab"
+
+[[stage.lane]]
+name = "B"
+pan = 1.0
+level_db = -1.0
+[[stage.lane.module]]
+type = "std.capture"
+name = "B.capture"
+asset = "tweed"
+[stage.lane.module.ui]
+label = "Tweed"
+[[stage.lane.module]]
+type = "std.eq"
+name = "B.eq"
+[[stage.lane.module]]
+type = "std.cabinet"
+name = "B.cabinet"
+asset = "cab"
+
+[[stage]]
+type = "std.reverb"
+name = "reverb"
+[stage.params]
+mix = 0.2
+
+[[stage]]
+type = "std.gain"
+name = "output"
+[stage.params]
+level_db = -6.0
