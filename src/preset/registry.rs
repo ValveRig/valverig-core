@@ -3,12 +3,13 @@
 //! The preset names modules by type and assets by content. This module is
 //! the registry that turns `std.*` types into nodes; the resolver the host
 //! supplies turns content addresses into loaded assets, and owns where the
-//! bytes come from and checking their hash. The format's checks are shape
-//! only: the values are applied through [`Controls`], so a parameter the
-//! module does not have is refused here by address, a value out of range is
-//! clamped to the descriptor as any set is, and a type the engine does not
-//! have is refused by name.
+//! bytes come from and checking their hash. The document's own checks are
+//! shape only: the values are applied through [`Controls`], so a parameter
+//! the module does not have is refused here by address, a value out of range
+//! is clamped to the descriptor as any set is, and a type the engine does
+//! not have is refused by name.
 
+use super::{Asset, AssetKind, Module, Preset, Stage};
 use crate::bus::{BusReturn, BusSend};
 use crate::cabinet::Cabinet;
 use crate::capture::Capture;
@@ -24,7 +25,6 @@ use crate::rack::{Append, Controls, Lane, Rack};
 use crate::reverb::Reverb;
 use crate::tap::Tap;
 use crate::{Error, Result};
-use valverig_format::{Asset, AssetKind, Module, Preset, Stage};
 use valverig_nam::loader::Model;
 
 /// An asset, loaded: what a resolver hands back for a label.
@@ -187,7 +187,7 @@ fn load<'a>(
     let asset = preset
         .assets
         .get(label)
-        .ok_or_else(|| valverig_format::Error::UnknownAsset {
+        .ok_or_else(|| Error::UnknownAsset {
             module: m.name.clone(),
             asset: label.into(),
         })?;

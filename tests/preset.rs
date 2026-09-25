@@ -4,8 +4,9 @@
 
 use std::path::{Path, PathBuf};
 use valverig_core::Error;
-use valverig_core::preset::{self, BuildOptions, Loaded, ResolveError};
-use valverig_format::{Asset, AssetKind, Preset, Stage, asset_hash};
+use valverig_core::preset::{
+    self, Asset, AssetKind, BuildOptions, Loaded, Preset, ResolveError, Stage, asset_hash,
+};
 use valverig_nam::loader::Model;
 
 const FIXTURE: &str = "assets/plexi-tweed-wide.rig";
@@ -248,16 +249,13 @@ fn the_format_checks_run_first() {
         m.name = "gate".into();
     }
     let e = preset::build(&p, &mut resolver(dir), BuildOptions::default()).unwrap_err();
-    assert!(
-        matches!(&e, Error::Format(valverig_format::Error::DuplicateName(n)) if n == "gate"),
-        "{e}"
-    );
+    assert!(matches!(&e, Error::DuplicateName(n) if n == "gate"), "{e}");
 }
 
 #[test]
 fn the_pedals_and_the_tap_build_from_their_types_and_write_back() {
     use std::collections::BTreeMap;
-    use valverig_format::Module;
+    use valverig_core::preset::Module;
     let module = |type_id: &str, name: &str| Module {
         type_id: type_id.into(),
         name: name.into(),
