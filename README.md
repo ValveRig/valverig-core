@@ -5,7 +5,7 @@ runs, and a `process()` that allocates nothing and takes no lock.
 
 It wraps `valverig-nam`'s captures and `valverig-dsp`'s stages as modules,
 runs them in series and in parallel lanes, and builds the whole rack from a
-`.rig` preset. It opens no files and no devices — you load the data and hand
+`.rig` preset. It opens no files and no devices: you load the data and hand
 it over.
 
 ```rust
@@ -83,9 +83,9 @@ control register belongs to the host's thread, so it is set on the way in
 and put back exactly as it was found on the way out, including out of a
 panic.
 
-**A non-finite block never leaves.** One `NaN` reaching a feedback path - a
-reverb's recirculation, a delay line, a capture's recurrent state - would
-stay there and poison every block after it. `process` checks what it
+**A non-finite block never leaves.** One `NaN` reaching a feedback path
+would stay there and poison every block after it: a reverb's recirculation,
+a delay line, a capture's recurrent state. `process` checks what it
 produced; on anything not finite it silences that block, clears what can be
 cleared inside a callback, and sets `Rack::faulted()`. Everything but a
 capture recovers on the spot. A capture's recovery means running its prewarm
@@ -119,7 +119,7 @@ namespace, because a name is the first half of every control address:
 
 **A preset the engine cannot build**: a module type it does not have, a
 parameter a module does not have, an asset of the wrong kind. Values out of
-range are not refused - they are clamped to the parameter's descriptor, the
+range are not refused; they are clamped to the parameter's descriptor, the
 same as any other set.
 
 ### Controls, latency and parallel lanes

@@ -2,9 +2,9 @@
 //!
 //! Most of what `valverig-dsp` offers is a mono primitive with settings: a
 //! gate, a compressor, a tone control, a drive, a chorus, a phaser, a
-//! delay. Making one of those into a module is always the same work - keep
+//! delay. Making one of those into a module is always the same work: keep
 //! one instance per channel, push the parameters into every instance before
-//! each block, run them side by side - so it is written once here.
+//! each block, and run them side by side. It is written once here.
 //!
 //! A module says what it is by implementing [`PerChannel`]: its type id,
 //! its parameters, how to build one, and where each parameter goes. Then

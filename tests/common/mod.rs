@@ -107,9 +107,9 @@ pub fn chain(model: Model, cabinet: Option<Cabinet>) -> (Rack, Controls) {
         .build()
 }
 
-/// The same front end, then one lane per capture - `<name>.capture`,
-/// `<name>.eq`, and `<name>.cabinet` when there is one - spread evenly from
-/// hard left to hard right, then `reverb` and `output` on the pair.
+/// The same front end, then one lane per capture, spread evenly from hard
+/// left to hard right, then `reverb` and `output` on the pair. A lane is
+/// `<name>.capture`, `<name>.eq`, and `<name>.cabinet` when there is one.
 pub fn lane_chain(lanes: Vec<(&str, Model, Option<Cabinet>)>) -> (Rack, Controls) {
     let count = lanes.len();
     let mut built = Vec::with_capacity(count);

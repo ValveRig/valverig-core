@@ -4,8 +4,8 @@
 //!
 //! In the path the tap is a wire: its output is its input, bit for bit.
 //! What it keeps is a copy of the block, and after every stage has run the
-//! rack calls [`Node::tap`] on it, which adds that copy - levelled, and
-//! panned into a pair the way a lane is mixed - to the output buffers. A
+//! rack calls [`Node::tap`] on it, which levels that copy, pans it into a
+//! pair the way a lane is mixed, and adds it to the output buffers. A
 //! tap in a lane runs on the lane's thread and is tapped on the rack's,
 //! after the lane has been joined, so nothing is shared while it runs.
 

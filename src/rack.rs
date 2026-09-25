@@ -22,11 +22,11 @@
 //! that is not a series of stages, such as a graph or a feedback path
 //! around a stage, is the one shape a rack cannot express.
 //!
-//! Lanes can run on threads of their own - [`Rack::set_parallel_lanes`] -
-//! the first on the thread that calls `process`, the rest on workers that
-//! wait for each block, so a block takes as long as the longest lane. The
-//! result is the sequential one bit for bit, and the audio path still does
-//! not allocate.
+//! Lanes can run on threads of their own with
+//! [`Rack::set_parallel_lanes`]: the first on the thread that calls
+//! `process`, the rest on workers that wait for each block, so a block
+//! takes as long as the longest lane. The result is the sequential one bit
+//! for bit, and the audio path still does not allocate.
 //!
 //! Two things cross the stages rather than pass through them. A
 //! [`Tap`](crate::tap::Tap) reaches the output: once every stage has run,
@@ -668,9 +668,9 @@ impl Rack {
     /// Whether a block has come out non-finite since the rack was last
     /// [reset](Rack::reset).
     ///
-    /// One `NaN` reaching a feedback path - a reverb's recirculation, a
-    /// delay line, a capture's recurrent state - stays there and poisons
-    /// every block after it. `process` therefore checks what it produced,
+    /// One `NaN` reaching a feedback path stays there and poisons every
+    /// block after it: a reverb's recirculation, a delay line, a capture's
+    /// recurrent state. `process` therefore checks what it produced,
     /// and on anything not finite it silences the block, clears what it can
     /// clear inside a callback, and sets this. Everything but a capture
     /// recovers on the spot; a capture needs [`Rack::reset`], which is the
@@ -745,9 +745,9 @@ impl Rack {
     ///
     /// Any number of frames is accepted, whatever the rack was prepared
     /// for: more than `max_block` is split into blocks of at most that many
-    /// and run in turn, because a host - CoreAudio among them - may deliver
-    /// more frames than it asked for, and an audio callback is no place to
-    /// find that out. Zero frames does nothing.
+    /// and run in turn, because a host such as CoreAudio may deliver more
+    /// frames than it asked for, and an audio callback is no place to find
+    /// that out. Zero frames does nothing.
     ///
     /// # Panics
     ///

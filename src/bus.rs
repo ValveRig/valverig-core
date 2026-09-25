@@ -1,6 +1,6 @@
 //! A send and a return: the signal at one point in the chain put on a bus,
 //! and added back in at another, so that a stretch of the chain runs in
-//! parallel with a dry copy of itself - an effects loop, on a mixing desk.
+//! parallel with a dry copy of itself. An effects loop, on a mixing desk.
 //!
 //! The rack keeps [`crate::rack::BUSES`] buses. A [`BusSend`] is a
 //! wire in the path that keeps a levelled copy of the block and names the
@@ -9,8 +9,8 @@
 //! the bus it reads; the rack hands it the bus's block before it runs, and
 //! it adds that block to its input at its own level. Buses are emptied at
 //! the start of every block, so a return hears the sends that ran before it
-//! in rack order - a send later in the chain, or in the same lanes stage,
-//! is silent to it - and there is no feedback and no latency. A mono bus
+//! in rack order: a send later in the chain, or in the same lanes stage,
+//! is silent to it. There is no feedback and no latency. A mono bus
 //! into a stereo return goes to both sides; a stereo bus into a mono return
 //! is the mean of the two.
 
