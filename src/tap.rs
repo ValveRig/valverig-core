@@ -10,7 +10,7 @@
 //! after the lane has been joined, so nothing is shared while it runs.
 
 use crate::Result;
-use crate::dsp::decibels;
+use crate::dsp::{decibels, one_pole};
 use crate::node::{Node, Param, ParamSpec};
 use crate::rack::{LANE_LEVEL, LANE_PAN, pan_gains};
 use std::sync::Arc;
@@ -93,7 +93,7 @@ impl Node for Tap {
         self.width = channels.min(2);
         self.buf = [vec![0.0; max_block], vec![0.0; max_block]];
         self.held = 0;
-        self.coeff = 1.0 - (-1.0 / (SMOOTH_MS * 1e-3 * sample_rate as f32)).exp();
+        self.coeff = one_pole::from_time(SMOOTH_MS, sample_rate as f32);
         self.gain = self.targets();
         self.mono_gain = self.mono_target();
         Ok(())
@@ -123,20 +123,22 @@ impl Node for Tap {
             // followed as smoothly as the pair is.
             [mono] => {
                 let target = self.mono_target();
+                let snap = one_pole::gain_snap(target);
                 let mut gain = self.mono_gain;
                 for (out, &held) in mono[..n].iter_mut().zip(&self.buf[0][..n]) {
-                    gain += coeff * (target - gain);
+                    gain = one_pole::step(gain, target, coeff, snap);
                     *out += held * gain;
                 }
                 self.mono_gain = gain;
             }
             [left, right] => {
                 let target = self.targets();
+                let snap = target.map(one_pole::gain_snap);
                 let [mut gl, mut gr] = self.gain;
                 let right_source = if self.width == 1 { 0 } else { 1 };
                 for i in 0..n {
-                    gl += coeff * (target[0] - gl);
-                    gr += coeff * (target[1] - gr);
+                    gl = one_pole::step(gl, target[0], coeff, snap[0]);
+                    gr = one_pole::step(gr, target[1], coeff, snap[1]);
                     left[i] += self.buf[0][i] * gl;
                     right[i] += self.buf[right_source][i] * gr;
                 }

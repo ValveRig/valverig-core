@@ -5,7 +5,7 @@
 
 mod common;
 
-use common::{assert_same_bits, from_db, noise, run_rack};
+use common::{assert_same_bits, from_db, moved_and_back, noise, run_rack};
 use valverig_core::delay::Delay;
 use valverig_core::gain::Gain;
 use valverig_core::rack::{Lane, Rack};
@@ -215,4 +215,29 @@ fn a_tap_into_a_mono_output_ramps_its_level_instead_of_stepping() {
         (previous - 1.1).abs() < 1e-3,
         "the wire plus the tap at -20 dB after 100 ms: {previous}"
     );
+}
+
+#[test]
+fn a_tap_moved_and_brought_back_to_unity_is_exact_again() {
+    let build = || {
+        Rack::builder()
+            .push("t", Tap::new())
+            .unwrap()
+            .push("g", Gain::new())
+            .unwrap()
+            .build()
+    };
+    let (still, moved) = moved_and_back(build, "t/level_db", -12.0, 0.0);
+    assert_same_bits(&moved[0], &still[0], "level");
+    let lanes = || {
+        Rack::builder()
+            .push("t", Tap::new())
+            .unwrap()
+            .split(vec![Lane::new("A").push("a", Gain::new()).unwrap()])
+            .unwrap()
+            .build()
+    };
+    let (still, moved) = moved_and_back(lanes, "t/pan", 0.5, 0.0);
+    assert_same_bits(&moved[0], &still[0], "pan, left");
+    assert_same_bits(&moved[1], &still[1], "pan, right");
 }

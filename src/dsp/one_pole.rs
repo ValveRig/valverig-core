@@ -1,8 +1,8 @@
 //! One-pole coefficients, and one step of a smoothed parameter.
 //!
-//! Every stage here smooths a moving setting, follows a level or rolls off
-//! the highs with the same first-order filter, and this is the arithmetic
-//! they share.
+//! Every stage in the crate smooths a moving setting, follows a level or
+//! rolls off the highs with the same first-order filter, and this is the
+//! arithmetic they share.
 //!
 //! # Two spellings, on purpose
 //!
@@ -10,7 +10,8 @@
 //! interchangeable at the level of the last bit:
 //!
 //! - the **increment** form, `now += k · (target − now)`, whose coefficient
-//!   comes from [`from_time`] or [`from_corner`]. Nine stages use it;
+//!   comes from [`from_time`] or [`from_corner`]. Every effect uses it, and
+//!   so do the rack's own gains;
 //! - the **retention** form, `y = a · y + (1 − a) · target`, whose
 //!   coefficient comes from [`retention`]. The compressor uses it, because
 //!   that is how the dynamics literature writes ballistics and how its
@@ -61,9 +62,9 @@ pub(crate) fn retention(milliseconds: f32, sample_rate: f32) -> f32 {
 /// One increment-form step of `now` towards `target`, landing exactly on it
 /// once the two are within `snap`.
 ///
-/// The snap matters more than it looks: a one-pole in `f32` stalls a few
-/// ULPs short of its target once each step rounds to nothing, and how short
-/// depends on the coefficient. Without it a parameter that has visibly
+/// The snap matters more than it looks: a one-pole in `f32` stalls short of
+/// its target once each step rounds to nothing, and the smaller the
+/// coefficient, the further short. Without it a parameter that has visibly
 /// finished moving would still not be equal to its setting, and the stages
 /// that copy their input through bit for bit at a particular setting, a mix
 /// of zero or a flat tone control, would never reach it.
@@ -74,5 +75,50 @@ pub(crate) fn step(now: f32, target: f32, coefficient: f32, snap: f32) -> f32 {
         target
     } else {
         next
+    }
+}
+
+/// The snap for a gain gliding towards `target`, for [`step`]: a thousandth
+/// of the target (0.009 dB), or a millionth of full scale (−120 dB) where the
+/// target is near zero, as a hard-panned side is.
+///
+/// A gain is a linear factor anywhere from silence to +24 dB, so its snap has
+/// to scale with it. The stall it clears is at most `2^-24 / k` of the
+/// target: 7.2e-6 for a 5 ms glide at 48 kHz, and 2.3e-4 at 768 kHz, the
+/// most the crate runs at. A thousandth clears it at every rate, and a glide
+/// has covered 99.9% of the way before it lands.
+#[inline]
+pub(crate) fn gain_snap(target: f32) -> f32 {
+    1e-3 * target.abs().max(1e-3)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Every gain the rack glides, anywhere from −60 dB to +24 dB and to or
+    /// from silence, lands exactly on its target within 90 ms, at the lowest
+    /// rate, the usual one and the highest.
+    #[test]
+    fn a_gain_glide_lands_exactly_within_90_ms_at_any_rate() {
+        let levels = [0.0f32, 1e-3, 0.5, 1.0, 2.0, 15.848_932];
+        for sample_rate in [1_000.0f32, 48_000.0, 768_000.0] {
+            let k = from_time(5.0, sample_rate);
+            let limit = (0.09 * sample_rate).ceil() as usize;
+            for &from in &levels {
+                for &to in &levels {
+                    let snap = gain_snap(to);
+                    let (mut now, mut n) = (from, 0);
+                    while now != to {
+                        now = step(now, to, k, snap);
+                        n += 1;
+                        assert!(
+                            n <= limit,
+                            "{from} to {to} at {sample_rate} Hz: still {now} after {n} samples"
+                        );
+                    }
+                }
+            }
+        }
     }
 }

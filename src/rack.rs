@@ -41,7 +41,7 @@
 //! is padded with a delay of the longest lane's latency less its own, so
 //! the mix adds what left the split together.
 
-use crate::dsp::decibels;
+use crate::dsp::{decibels, one_pole};
 use crate::node::{Node, Param, ParamSpec, Unit};
 use crate::{Error, Result};
 use std::sync::Arc;
@@ -284,7 +284,7 @@ impl Lane {
                 .map_err(|e| label(e, &m.name))?;
         }
         self.width = width;
-        self.coeff = 1.0 - (-1.0 / (MIX_SMOOTH_MS * 1e-3 * sample_rate as f32)).exp();
+        self.coeff = one_pole::from_time(MIX_SMOOTH_MS, sample_rate as f32);
         self.gain = self.targets();
         self.a = [vec![0.0; max_block], vec![0.0; max_block]];
         self.b = [vec![0.0; max_block], vec![0.0; max_block]];
@@ -369,13 +369,14 @@ impl Lane {
     fn mix_into(&mut self, in_a: bool, dst: &mut [Vec<f32>; 2], n: usize) {
         let src = if in_a { &self.a } else { &self.b };
         let target = self.targets();
+        let snap = target.map(one_pole::gain_snap);
         let coeff = self.coeff;
         let [mut gl, mut gr] = self.gain;
         let [dl, dr] = dst;
         let right_source = if self.width == 1 { 0 } else { 1 };
         for i in 0..n {
-            gl += coeff * (target[0] - gl);
-            gr += coeff * (target[1] - gr);
+            gl = one_pole::step(gl, target[0], coeff, snap[0]);
+            gr = one_pole::step(gr, target[1], coeff, snap[1]);
             dl[i] += src[0][i] * gl;
             dr[i] += src[right_source][i] * gr;
         }

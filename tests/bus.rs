@@ -5,7 +5,7 @@
 
 mod common;
 
-use common::{assert_same_bits, from_db, noise, run_rack};
+use common::{assert_same_bits, from_db, moved_and_back, noise, run_rack};
 use valverig_core::bus::{BusReturn, BusSend};
 use valverig_core::gain::Gain;
 use valverig_core::rack::{Lane, Rack};
@@ -130,4 +130,22 @@ fn a_send_in_a_lane_reaches_a_return_after_the_mix_and_the_workers_agree() {
         &outs[1][1],
         "right, sequential against parallel",
     );
+}
+
+#[test]
+fn a_send_and_a_return_moved_and_brought_back_to_unity_are_exact_again() {
+    let build = || {
+        Rack::builder()
+            .push("s", BusSend::new())
+            .unwrap()
+            .push("g", Gain::new())
+            .unwrap()
+            .push("r", BusReturn::new())
+            .unwrap()
+            .build()
+    };
+    for address in ["s/level_db", "r/level_db"] {
+        let (still, moved) = moved_and_back(build, address, -12.0, 0.0);
+        assert_same_bits(&moved[0], &still[0], address);
+    }
 }

@@ -269,3 +269,37 @@ pub fn lane_chain(lanes: Vec<(&str, Model, Option<Cabinet>)>) -> (Rack, Controls
         .unwrap()
         .build()
 }
+
+/// The longest a rack's own gain glide takes to land exactly on its target,
+/// with room to spare: from +24 dB to −60 dB takes 83 ms.
+pub const LANDED_MS: f64 = 90.0;
+
+/// Two copies of a rack in step, one with `address` moved to `away` and then
+/// back to `home`, each given [`LANDED_MS`] to land, the other left alone.
+/// Returns the next block from each, still first: a glide that lands on its
+/// target leaves the two the same to the bit.
+pub fn moved_and_back(
+    build: impl Fn() -> (Rack, Controls),
+    address: &str,
+    away: f32,
+    home: f32,
+) -> (Vec<Vec<f32>>, Vec<Vec<f32>>) {
+    let block = 128;
+    let x = noise(11, block, 0.5);
+    let (mut still, _) = build();
+    let (mut moved, controls) = build();
+    still.prepare(SR, block).unwrap();
+    moved.prepare(SR, block).unwrap();
+    let landing = (LANDED_MS * 1e-3 * SR / block as f64).ceil() as usize;
+    for value in [away, home] {
+        controls.set(address, value).unwrap();
+        for _ in 0..landing {
+            run_rack(&mut still, &x, &[block]);
+            run_rack(&mut moved, &x, &[block]);
+        }
+    }
+    (
+        run_rack(&mut still, &x, &[block]),
+        run_rack(&mut moved, &x, &[block]),
+    )
+}

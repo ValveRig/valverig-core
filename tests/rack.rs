@@ -3,7 +3,9 @@
 
 mod common;
 
-use common::{assert_same_bits, impulse_response, lane_chain, model, noise, run_rack};
+use common::{
+    assert_same_bits, impulse_response, lane_chain, model, moved_and_back, noise, run_rack,
+};
 use valverig_core::Error;
 use valverig_core::cabinet::Cabinet;
 use valverig_core::dsp::convolution::Convolver;
@@ -613,4 +615,37 @@ fn a_rate_outside_the_band_is_refused_before_any_module_sees_it() {
         rack.prepare(rate, 128)
             .unwrap_or_else(|e| panic!("{rate}: {e}"));
     }
+}
+
+#[test]
+fn a_gain_moved_and_brought_back_to_0_db_is_exact_again() {
+    for away in [-60.0, -6.0, 24.0] {
+        let (still, moved) = moved_and_back(
+            || Rack::builder().push("g", Gain::new()).unwrap().build(),
+            "g/level_db",
+            away,
+            0.0,
+        );
+        assert_same_bits(&moved[0], &still[0], &format!("back from {away} dB"));
+    }
+}
+
+#[test]
+fn a_hard_pan_moved_and_brought_back_is_exact_again() {
+    let (still, moved) = moved_and_back(
+        || {
+            Rack::builder()
+                .split(vec![
+                    Lane::new("A").pan(-1.0).push("a", Gain::new()).unwrap(),
+                ])
+                .unwrap()
+                .build()
+        },
+        "A/pan",
+        0.0,
+        -1.0,
+    );
+    assert_same_bits(&moved[0], &still[0], "left");
+    assert_same_bits(&moved[1], &still[1], "right");
+    assert!(moved[1].iter().all(|&v| v == 0.0), "nothing on the right");
 }

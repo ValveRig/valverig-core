@@ -15,7 +15,7 @@
 //! is the mean of the two.
 
 use crate::Result;
-use crate::dsp::decibels;
+use crate::dsp::{decibels, one_pole};
 use crate::node::{Node, Param, ParamSpec, Unit};
 use crate::rack::{BUSES, LANE_LEVEL};
 use std::sync::Arc;
@@ -39,9 +39,8 @@ fn bus_index(p: &Param) -> usize {
     (p.get().round() as usize).clamp(1, BUSES) - 1
 }
 
-#[inline]
 fn coeff(sample_rate: f64) -> f32 {
-    1.0 - (-1.0 / (SMOOTH_MS * 1e-3 * sample_rate as f32)).exp()
+    one_pole::from_time(SMOOTH_MS, sample_rate as f32)
 }
 
 /// A send onto a bus.
@@ -104,9 +103,10 @@ impl Node for BusSend {
     fn process(&mut self, input: &[&[f32]], output: &mut [&mut [f32]]) {
         let n = input[0].len();
         let target = decibels::to_linear(self.params[0].get());
+        let snap = one_pole::gain_snap(target);
         let (coeff, mut g) = (self.coeff, self.gain);
         for i in 0..n {
-            g += coeff * (target - g);
+            g = one_pole::step(g, target, coeff, snap);
             for (c, x) in input.iter().enumerate().take(self.width) {
                 self.buf[c][i] = x[i] * g;
             }
@@ -219,13 +219,14 @@ impl Node for BusReturn {
             self.got = 0;
             return;
         }
+        let snap = one_pole::gain_snap(target);
         let (coeff, mut g) = (self.coeff, self.gain);
         for c in 0..self.width.min(input.len()) {
             g = self.gain;
             let x = input[c];
             let y = &mut output[c];
             for i in 0..n {
-                g += coeff * (target - g);
+                g = one_pole::step(g, target, coeff, snap);
                 let b = if i >= got {
                     0.0
                 } else if self.bus_width == 2 {
