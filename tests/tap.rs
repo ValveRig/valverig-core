@@ -5,7 +5,7 @@
 
 mod common;
 
-use common::{assert_bits, run, signal};
+use common::{assert_same_bits, noise, run_rack};
 use valverig_core::delay::Delay;
 use valverig_core::gain::{Gain, db_to_linear};
 use valverig_core::rack::{Lane, Rack};
@@ -25,27 +25,27 @@ fn a_tap_adds_its_point_in_the_chain_to_the_output() {
     controls.set("output/level_db", -6.0).unwrap();
     rack.prepare(48_000.0, 128).unwrap();
     assert_eq!(rack.channels_out(), 1);
-    let x = signal(1, 4096, 0.5);
+    let x = noise(1, 4096, 0.5);
     let g = db_to_linear(-6.0);
-    let y = run(&mut rack, &x, &[128, 1, 7, 64]);
+    let y = run_rack(&mut rack, &x, &[128, 1, 7, 64]);
     let want: Vec<f32> = x.iter().map(|v| v * g + v).collect();
-    assert_bits(&y[0], &want, "the path at -6 dB plus the tap at unity");
+    assert_same_bits(&y[0], &want, "the path at -6 dB plus the tap at unity");
 
     // A bypassed tap adds nothing.
     controls.set_bypass("tap", true).unwrap();
-    let y = run(&mut rack, &x, &[128]);
+    let y = run_rack(&mut rack, &x, &[128]);
     let want: Vec<f32> = x.iter().map(|v| v * g).collect();
-    assert_bits(&y[0], &want, "bypassed");
+    assert_same_bits(&y[0], &want, "bypassed");
 
     // Back in, at its own level, with the path after it out.
     controls.set_bypass("tap", false).unwrap();
     controls.set_bypass("output", true).unwrap();
     controls.set("tap/level_db", -12.0).unwrap();
     rack.reset();
-    let y = run(&mut rack, &x, &[128]);
+    let y = run_rack(&mut rack, &x, &[128]);
     let t = db_to_linear(-12.0);
     let want: Vec<f32> = x.iter().map(|v| v + v * t).collect();
-    assert_bits(&y[0], &want, "the tap at -12 dB over the bare path");
+    assert_same_bits(&y[0], &want, "the tap at -12 dB over the bare path");
 }
 
 #[test]
@@ -73,8 +73,8 @@ fn a_tap_before_the_lanes_is_panned_into_the_pair_like_a_lane() {
     controls.set("B.gain/level_db", 3.0).unwrap();
     rack.prepare(48_000.0, 128).unwrap();
     assert_eq!(rack.channels_out(), 2);
-    let x = signal(2, 4096, 0.5);
-    let y = run(&mut rack, &x, &[128]);
+    let x = noise(2, 4096, 0.5);
+    let y = run_rack(&mut rack, &x, &[128]);
     // A hard left at -6, B hard right at +3, the tap centred: a constant-
     // power pan puts it 3 dB down on each side.
     let (ga, gb) = (db_to_linear(-6.0), db_to_linear(3.0));
@@ -91,9 +91,9 @@ fn a_tap_before_the_lanes_is_panned_into_the_pair_like_a_lane() {
     // Panned hard right, it leaves the left side alone, exactly.
     controls.set("tap/pan", 1.0).unwrap();
     rack.reset();
-    let y = run(&mut rack, &x, &[128]);
+    let y = run_rack(&mut rack, &x, &[128]);
     let left: Vec<f32> = x.iter().map(|v| v * ga).collect();
-    assert_bits(&y[0], &left, "hard right leaves the left to lane A");
+    assert_same_bits(&y[0], &left, "hard right leaves the left to lane A");
 }
 
 #[test]
@@ -124,7 +124,7 @@ fn a_tap_in_a_lane_on_a_worker_is_the_sequential_rack_bit_for_bit() {
             .unwrap()
             .build()
     };
-    let x = signal(3, 24_000, 0.4);
+    let x = noise(3, 24_000, 0.4);
     let schedule = [128usize, 1, 7, 64, 3, 128, 33];
     let mut outs = Vec::new();
     for parallel in [false, true] {
@@ -154,8 +154,8 @@ fn a_tap_in_a_lane_on_a_worker_is_the_sequential_rack_bit_for_bit() {
         }
         outs.push(y);
     }
-    assert_bits(&outs[0][0], &outs[1][0], "left");
-    assert_bits(&outs[0][1], &outs[1][1], "right");
+    assert_same_bits(&outs[0][0], &outs[1][0], "left");
+    assert_same_bits(&outs[0][1], &outs[1][1], "right");
     assert!(
         outs[0][0].iter().any(|v| v.abs() > 1e-3) && outs[0][1].iter().any(|v| v.abs() > 1e-3),
         "silence"
@@ -167,7 +167,7 @@ fn a_tap_in_a_lane_on_a_worker_is_the_sequential_rack_bit_for_bit() {
     for name in ["A.tap", "B.tap", "tap"] {
         cq.set_bypass(name, true).unwrap();
     }
-    let yq = run(&mut quiet, &x, &[128]);
+    let yq = run_rack(&mut quiet, &x, &[128]);
     assert!(
         yq[0]
             .iter()

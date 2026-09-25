@@ -48,8 +48,8 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::{self, JoinHandle};
 
+use crate::dsp::denormals::Restoring;
 use crate::worker::{DONE, GO, Hook, IDLE, QUIT, Shared, worker};
-use valverig_dsp::denormals::Restoring;
 
 /// A lane's level into the mix.
 pub const LANE_LEVEL: ParamSpec = ParamSpec {

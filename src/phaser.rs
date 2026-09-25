@@ -1,11 +1,11 @@
-//! The phaser, `valverig-dsp`'s [`Phaser`](valverig_dsp::phaser::Phaser), as
+//! The phaser, the dsp stage [`Phaser`](crate::dsp::phaser::Phaser), as
 //! a module: one per channel, one set of settings, each channel's sweep a
 //! quarter of a cycle behind the one before it so a pair sways against
 //! itself.
 
 use std::sync::Arc;
 
-use valverig_dsp::phaser::{MAX_FEEDBACK, Phaser as Inner};
+use crate::dsp::phaser::{MAX_FEEDBACK, Phaser as Inner};
 
 use crate::channels::{Channels, PerChannel};
 use crate::chorus::CHANNEL_OFFSET;

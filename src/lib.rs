@@ -2,9 +2,9 @@
 //!
 //! A plugin, an app or an audio worklet links this crate and gets
 //! everything it needs: the [`node::Node`] contract every module
-//! answers to, adapters wrapping `valverig-nam`'s capture and
-//! `valverig-dsp`'s cabinet, gate, compressor, tone control, reverb, drive,
-//! chorus, phaser and delay, a smoothed gain, a tap to the output, a send
+//! answers to, adapters wrapping `valverig-nam`'s capture and the
+//! [`dsp`] stages (cabinet, gate, compressor, tone control, reverb, drive,
+//! chorus, phaser and delay), a smoothed gain, a tap to the output, a send
 //! and a return over the rack's buses, the [`rack::Rack`] that runs them
 //! as stages in series and lanes in parallel panned into a stereo pair, and
 //! the [`rack::Controls`] a host sets parameters on from any thread while
@@ -54,6 +54,7 @@ pub mod chorus;
 pub mod compressor;
 pub mod delay;
 pub mod drive;
+pub mod dsp;
 pub mod eq;
 pub mod error;
 pub mod gain;

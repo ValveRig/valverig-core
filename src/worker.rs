@@ -31,8 +31,8 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicPtr, AtomicU8, AtomicUsize, Ordering};
 use std::thread;
 
+use crate::dsp::denormals;
 use crate::rack::{Lane, ThreadHook};
-use valverig_dsp::denormals;
 
 /// Nobody is running the lane.
 pub(crate) const IDLE: u8 = 0;

@@ -1,11 +1,11 @@
-//! The chorus, `valverig-dsp`'s [`Chorus`](valverig_dsp::chorus::Chorus), as
+//! The chorus, the dsp stage [`Chorus`](crate::dsp::chorus::Chorus), as
 //! a module: one per channel, one set of settings, each channel's sweep a
 //! quarter of a cycle behind the one before it so a pair sways against
 //! itself.
 
 use std::sync::Arc;
 
-use valverig_dsp::chorus::Chorus as Inner;
+use crate::dsp::chorus::Chorus as Inner;
 
 use crate::channels::{Channels, PerChannel};
 use crate::node::{Param, ParamSpec, Unit};

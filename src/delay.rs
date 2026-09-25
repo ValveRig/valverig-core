@@ -1,9 +1,9 @@
-//! The delay, `valverig-dsp`'s [`Delay`](valverig_dsp::delay::Delay), as a
+//! The delay, the dsp stage [`Delay`](crate::dsp::delay::Delay), as a
 //! module: one per channel, one set of settings.
 
 use std::sync::Arc;
 
-use valverig_dsp::delay::{Delay as Inner, MAX_FEEDBACK, MAX_TIME_MS, TONE_OPEN_HZ};
+use crate::dsp::delay::{Delay as Inner, MAX_FEEDBACK, MAX_TIME_MS, TONE_OPEN_HZ};
 
 use crate::channels::{Channels, PerChannel};
 use crate::node::{Param, ParamSpec, Unit};

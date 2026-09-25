@@ -1,5 +1,6 @@
-//! What a rack costs per block, against the time a block has to be ready
-//! in. Ignored by default, because it measures rather than checks:
+//! What the engine costs, against the time it has: the convolver on its own
+//! at every partition size, and a whole rack per block. Ignored by default,
+//! because it measures rather than checks:
 //!
 //! ```text
 //! cargo test --release --test benchmark -- --ignored --nocapture
@@ -10,10 +11,73 @@
 
 mod common;
 
-use common::{impulse_response, lane_chain, model};
+use std::hint::black_box;
 use std::time::Instant;
+
+use common::{cabinet, impulse_response, lane_chain, model, noise};
 use valverig_core::cabinet::Cabinet;
+use valverig_core::dsp::convolution::{Convolver, partition_for};
 use valverig_core::rack::Rack;
+
+/// The measurement behind `partition_for`: steady-state throughput over
+/// cabinet-sized IRs at every partition size, as multiples of real time at
+/// 48 kHz. Construction is outside the clock; `*` marks what
+/// `Convolver::new` picks.
+///
+/// It measures rather than asserts, so it is not part of a normal run:
+///
+/// ```text
+/// cargo test --release --test benchmark -- --ignored --nocapture
+/// ```
+#[test]
+#[ignore = "measures rather than checks; run with --release --ignored"]
+fn partition_sweep() {
+    if cfg!(debug_assertions) {
+        eprintln!("warning: built without optimisations; these numbers mean nothing.");
+    }
+    let sample_rate = 48_000.0;
+    let seconds = 2.0;
+    let frames = (sample_rate * seconds) as usize;
+    let input = noise(0xC0FFEE, frames, 0.3);
+    let mut output = vec![0.0f32; frames];
+    let partitions = [32usize, 64, 128, 256, 512];
+
+    print!("{:>8} {:>6} |", "ir taps", "block");
+    for p in partitions {
+        print!(" {:>8}", format!("P={p}"));
+    }
+    println!();
+    for &len in &[512usize, 2048, 8192, 24_000, 96_000] {
+        let ir = cabinet(0xAB, len);
+        for &block in &[64usize, 512] {
+            print!("{len:>8} {block:>6} |");
+            for p in partitions {
+                let mut c = Convolver::with_partition(&ir, p);
+                let mut sweep = || {
+                    for pos in (0..frames).step_by(block) {
+                        let n = block.min(frames - pos);
+                        c.process(
+                            black_box(&input[pos..pos + n]),
+                            black_box(&mut output[pos..pos + n]),
+                        );
+                    }
+                };
+                sweep();
+                let mut times = Vec::with_capacity(5);
+                for _ in 0..5 {
+                    let start = Instant::now();
+                    sweep();
+                    times.push(start.elapsed().as_secs_f64());
+                }
+                times.sort_by(f64::total_cmp);
+                let times_real_time = seconds / times[times.len() / 2];
+                let mark = if p == partition_for(len) { "*" } else { " " };
+                print!(" {times_real_time:>7.0}{mark}");
+            }
+            println!();
+        }
+    }
+}
 
 const RATE: f64 = 48_000.0;
 const BLOCK: usize = 128;

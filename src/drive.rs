@@ -1,9 +1,9 @@
-//! The drive, `valverig-dsp`'s [`Drive`](valverig_dsp::drive::Drive), as a
+//! The drive, the dsp stage [`Drive`](crate::dsp::drive::Drive), as a
 //! module: one per channel, one set of settings.
 
 use std::sync::Arc;
 
-use valverig_dsp::drive::{Drive as Inner, MAX_DRIVE_DB, TONE_OPEN_HZ};
+use crate::dsp::drive::{Drive as Inner, MAX_DRIVE_DB, TONE_OPEN_HZ};
 
 use crate::channels::{Channels, PerChannel};
 use crate::node::{Param, ParamSpec, Unit};

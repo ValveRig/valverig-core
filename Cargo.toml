@@ -8,9 +8,9 @@ license = "MIT"
 repository = "https://github.com/ValveRig/valverig-core"
 
 [dependencies]
-valverig-dsp = "0.0.1"
 valverig-nam = "0.0.1"
 blake3 = { version = "1.8.7", default-features = false }
+realfft = "3.5.0"
 serde = { version = "1.0.229", features = ["derive"] }
 thiserror = "2.0.20"
 toml = "1.1.4"

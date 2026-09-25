@@ -4,7 +4,7 @@
 
 mod common;
 
-use common::{lane_chain, model, signal};
+use common::{lane_chain, model, noise};
 use valverig_core::cabinet::Cabinet;
 use valverig_core::rack::{self, Rack};
 
@@ -46,7 +46,7 @@ fn run(
 
 #[test]
 fn parallel_lanes_are_the_sequential_rack_bit_for_bit() {
-    let input = signal(1, 48_000, 0.3);
+    let input = noise(1, 48_000, 0.3);
     let blocks = [128usize, 1, 7, 64, 3, 128, 33];
     for three in [false, true] {
         let (mut seq, cs) = rig(three);

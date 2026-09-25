@@ -1,13 +1,11 @@
-//! The cabinet, `valverig-dsp`'s [`Convolver`] and [`Cuts`], as a module:
+//! The cabinet, the dsp module's [`Convolver`] and [`Cuts`], as a module:
 //! one of each per channel, all of the same impulse response, under one
 //! set of settings.
 
 use std::sync::Arc;
 
-use valverig_dsp::convolution::Convolver;
-use valverig_dsp::cuts::{
-    Cuts, HIGH_CUT_MIN_HZ, HIGH_CUT_OPEN_HZ, LOW_CUT_MAX_HZ, LOW_CUT_OPEN_HZ,
-};
+use crate::dsp::convolution::Convolver;
+use crate::dsp::cuts::{Cuts, HIGH_CUT_MIN_HZ, HIGH_CUT_OPEN_HZ, LOW_CUT_MAX_HZ, LOW_CUT_OPEN_HZ};
 
 use crate::node::{Node, Param, ParamSpec, Unit};
 use crate::{Error, Result};

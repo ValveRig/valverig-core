@@ -1,8 +1,11 @@
-//! What the integration tests share: the reference captures, a repeatable
-//! signal, a block-schedule runner, a bit-for-bit comparison, and the two
-//! chains the tests exercise the rack with.
+//! What the integration tests share: signals and the measurements taken of
+//! them, block schedules and the runners that apply them to a stage or to a
+//! rack, a bit-for-bit comparison, the reference captures, and the two
+//! chains the rack tests are built from.
 //!
-//! Each test binary uses a part of this, so unused items here are expected.
+//! Each test binary compiles the whole of this module and uses part of it,
+//! which is what the allow below is for: an unused helper here means some
+//! other test needs it, not that it is dead.
 #![allow(dead_code)]
 
 use std::path::Path;
@@ -17,25 +20,48 @@ use valverig_core::rack::{Controls, Lane, Rack};
 use valverig_core::reverb::Reverb;
 use valverig_nam::loader::Model;
 
-/// The reference captures live in `valverig-nam`, which is where they are
-/// documented and checked; the tests here read them from the sibling
-/// checkout rather than keeping a second copy.
-pub fn model(name: &str) -> Model {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("assets/models")
-        .join(name);
-    Model::from_file(&path).unwrap_or_else(|e| {
-        panic!(
-            "the reference capture {} would not load: {e}",
-            path.display()
-        )
-    })
+/// The rate the stage tests run at, unless a test says otherwise.
+pub const SR: f64 = 48_000.0;
+
+/// Block schedules that never line up with anything: single frames, a prime,
+/// a Fibonacci run, a long-short alternation, and two either side of 64.
+pub const SCHEDULES: [&[usize]; 5] = [
+    &[1],
+    &[7],
+    &[1, 2, 3, 5, 8, 13, 21, 34, 55, 89],
+    &[500, 1],
+    &[63, 65],
+];
+
+/// Samples in `t` milliseconds at [`SR`].
+pub fn ms(t: f32) -> usize {
+    (t * (SR as f32) / 1000.0).round() as usize
 }
 
-/// splitmix64 rendered as `f32`, so every value is exactly representable
-/// and a comparison can be bit for bit. The same seed gives the same
-/// signal on every machine.
-pub fn signal(seed: u64, n: usize, scale: f32) -> Vec<f32> {
+/// The linear factor for `db` decibels.
+pub fn from_db(db: f32) -> f32 {
+    10f32.powf(db / 20.0)
+}
+
+/// `ratio` as decibels.
+pub fn to_db(ratio: f32) -> f32 {
+    20.0 * ratio.log10()
+}
+
+/// A sine of `seconds` at [`SR`].
+pub fn sine(hz: f32, amplitude: f32, seconds: f32) -> Vec<f32> {
+    sine_at(hz as f64, amplitude, seconds as f64, SR)
+}
+
+/// A sine of `seconds` at an arbitrary rate.
+pub fn sine_at(hz: f64, amplitude: f32, seconds: f64, sample_rate: f64) -> Vec<f32> {
+    (0..(seconds * sample_rate) as usize)
+        .map(|i| ((i as f64 / sample_rate * std::f64::consts::TAU * hz).sin() as f32) * amplitude)
+        .collect()
+}
+
+/// splitmix64 as `f32` in `[-scale, scale)`, exactly representable.
+pub fn noise(seed: u64, n: usize, scale: f32) -> Vec<f32> {
     let mut s = seed;
     (0..n)
         .map(|_| {
@@ -49,9 +75,115 @@ pub fn signal(seed: u64, n: usize, scale: f32) -> Vec<f32> {
         .collect()
 }
 
+/// A single full-scale sample, then silence.
+pub fn impulse(n: usize) -> Vec<f32> {
+    let mut x = vec![0.0f32; n];
+    x[0] = 1.0;
+    x
+}
+
+/// A steady level of `level_db` dBFS, `n` frames long.
+pub fn dc(level_db: f32, n: usize) -> Vec<f32> {
+    vec![from_db(level_db); n]
+}
+
+pub fn rms(x: &[f32]) -> f32 {
+    (x.iter().map(|v| v * v).sum::<f32>() / x.len() as f32).sqrt()
+}
+
+/// The magnitude at `hz` over `x`, as a fraction of full scale, by
+/// Goertzel's algorithm. `x` must hold a whole number of periods at `hz`.
+pub fn goertzel(x: &[f32], hz: f64, sample_rate: f64) -> f32 {
+    let w = std::f64::consts::TAU * hz / sample_rate;
+    let c = 2.0 * w.cos();
+    let (mut s1, mut s2) = (0.0f64, 0.0f64);
+    for &v in x {
+        let s0 = v as f64 + c * s1 - s2;
+        s2 = s1;
+        s1 = s0;
+    }
+    let power = s1 * s1 + s2 * s2 - c * s1 * s2;
+    (2.0 * power.max(0.0).sqrt() / x.len() as f64) as f32
+}
+
+/// Run `x` through `step` in blocks drawn cyclically from `blocks`, and
+/// return everything it produced.
+pub fn run(x: &[f32], blocks: &[usize], mut step: impl FnMut(&[f32], &mut [f32])) -> Vec<f32> {
+    let mut y = vec![0.0f32; x.len()];
+    let (mut pos, mut i) = (0usize, 0usize);
+    while pos < x.len() {
+        let n = blocks[i % blocks.len()].max(1).min(x.len() - pos);
+        i += 1;
+        step(&x[pos..pos + n], &mut y[pos..pos + n]);
+        pos += n;
+    }
+    y
+}
+
+/// Every sample of `got` is `want` down to the last bit, `-0.0` and `0.0`
+/// counted as different.
+pub fn assert_same_bits(got: &[f32], want: &[f32], what: &str) {
+    assert_eq!(
+        got.len(),
+        want.len(),
+        "{what}: {} samples against {}",
+        got.len(),
+        want.len()
+    );
+    for (i, (g, w)) in got.iter().zip(want).enumerate() {
+        assert_eq!(
+            g.to_bits(),
+            w.to_bits(),
+            "{what}: sample {i} is {g} not {w}"
+        );
+    }
+}
+
+/// Splitting `x` into blocks any way at all gives byte-identical output.
+///
+/// `fresh` must hand back a stage in the same state every time; every
+/// schedule in [`SCHEDULES`] is compared against a run in blocks of 512.
+pub fn independent_of_block_grouping<S>(
+    x: &[f32],
+    mut fresh: impl FnMut() -> S,
+    mut process: impl FnMut(&mut S, &[f32], &mut [f32]),
+) {
+    let mut first = fresh();
+    let reference = run(x, &[512], |i, o| process(&mut first, i, o));
+    for blocks in SCHEDULES {
+        let mut stage = fresh();
+        let got = run(x, blocks, |i, o| process(&mut stage, i, o));
+        assert_same_bits(&got, &reference, &format!("schedule {blocks:?}"));
+    }
+}
+
+/// A cabinet-shaped IR: noise under an exponential decay.
+pub fn cabinet(seed: u64, len: usize) -> Vec<f32> {
+    let tau = (len as f32 / 4.0).max(1.0);
+    noise(seed, len, 0.5)
+        .into_iter()
+        .enumerate()
+        .map(|(i, v)| v * (-(i as f32) / tau).exp())
+        .collect()
+}
+
+/// One of the reference captures in `assets/models`: copies of fixtures
+/// from `valverig-nam`, whose README says where each one comes from.
+pub fn model(name: &str) -> Model {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("assets/models")
+        .join(name);
+    Model::from_file(&path).unwrap_or_else(|e| {
+        panic!(
+            "the reference capture {} would not load: {e}",
+            path.display()
+        )
+    })
+}
+
 /// A decaying noise burst, standing in for a cabinet's impulse response.
 pub fn impulse_response(taps: usize, seed: u64) -> Vec<f32> {
-    signal(seed, taps, 0.3)
+    noise(seed, taps, 0.3)
         .iter()
         .enumerate()
         .map(|(i, v)| v * (-(i as f32) / 400.0).exp())
@@ -61,7 +193,7 @@ pub fn impulse_response(taps: usize, seed: u64) -> Vec<f32> {
 /// Run `input` through the rack in blocks drawn cyclically from
 /// `schedule`, returning one output per channel. A ragged schedule is how
 /// a test shows that the output does not depend on how frames are grouped.
-pub fn run(rack: &mut Rack, input: &[f32], schedule: &[usize]) -> Vec<Vec<f32>> {
+pub fn run_rack(rack: &mut Rack, input: &[f32], schedule: &[usize]) -> Vec<Vec<f32>> {
     let mut out = vec![vec![0.0f32; input.len()]; rack.channels_out()];
     let (mut pos, mut i) = (0, 0);
     while pos < input.len() {
@@ -72,14 +204,6 @@ pub fn run(rack: &mut Rack, input: &[f32], schedule: &[usize]) -> Vec<Vec<f32>> 
         pos += n;
     }
     out
-}
-
-/// Fail on the first sample whose bits differ, naming it.
-pub fn assert_bits(got: &[f32], want: &[f32], what: &str) {
-    assert_eq!(got.len(), want.len(), "{what}: lengths differ");
-    for (i, (a, b)) in got.iter().zip(want).enumerate() {
-        assert_eq!(a.to_bits(), b.to_bits(), "{what}: sample {i}");
-    }
 }
 
 /// A mono chain around one capture: `input` gain, `gate`, `compressor`,

@@ -1,9 +1,9 @@
-//! The tone control, `valverig-dsp`'s [`ThreeBand`], as a module: one per
+//! The tone control, the dsp stage [`ThreeBand`], as a module: one per
 //! channel, one set of settings.
 
 use std::sync::Arc;
 
-use valverig_dsp::eq::ThreeBand;
+use crate::dsp::eq::ThreeBand;
 
 use crate::channels::{Channels, PerChannel};
 use crate::node::{Param, ParamSpec, Unit};

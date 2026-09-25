@@ -1,6 +1,6 @@
 //! One mono stage per channel, under one set of parameters.
 //!
-//! Most of what `valverig-dsp` offers is a mono primitive with settings: a
+//! Most of what [`dsp`](crate::dsp) offers is a mono primitive with settings: a
 //! gate, a compressor, a tone control, a drive, a chorus, a phaser, a
 //! delay. Making one of those into a module is always the same work: keep
 //! one instance per channel, push the parameters into every instance before
@@ -8,8 +8,8 @@
 //!
 //! A module says what it is by implementing [`PerChannel`]: its type id,
 //! its parameters, how to build one, and where each parameter goes. Then
-//! [`Channels`] is the [`Node`]. `valverig-dsp` knows nothing about any of
-//! this; the trait is implemented here, on its types.
+//! [`Channels`] is the [`Node`]. The stages in [`dsp`](crate::dsp) know nothing
+//! about any of this; the trait is implemented here, on their types.
 
 use std::sync::Arc;
 

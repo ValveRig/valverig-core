@@ -5,7 +5,7 @@
 use valverig_core::Result;
 mod common;
 
-use common::signal;
+use common::noise;
 use valverig_core::gain::Gain;
 use valverig_core::node::Node;
 use valverig_core::rack::{Lane, Rack};
@@ -71,7 +71,7 @@ impl Node for Late {
 
 #[test]
 fn the_shorter_lane_waits_for_the_longer() {
-    let x = signal(1, 6000, 0.5);
+    let x = noise(1, 6000, 0.5);
     let schedule = [128usize, 1, 7, 64, 3, 128, 33];
     for late_in_a in [true, false] {
         for parallel in [false, true] {
@@ -145,7 +145,7 @@ fn lanes_of_equal_latency_are_not_touched() {
         .build();
     rack.prepare(48_000.0, 64).unwrap();
     assert_eq!(rack.latency(), 0);
-    let x = signal(2, 256, 0.5);
+    let x = noise(2, 256, 0.5);
     let (mut l, mut r) = (vec![0.0f32; 256], vec![0.0f32; 256]);
     for c in 0..4 {
         let mut o = [&mut l[c * 64..(c + 1) * 64], &mut r[c * 64..(c + 1) * 64]];

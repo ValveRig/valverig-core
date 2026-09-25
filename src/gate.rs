@@ -1,9 +1,9 @@
-//! The noise gate, `valverig-dsp`'s [`Gate`](valverig_dsp::gate::Gate), as a
+//! The noise gate, the dsp stage [`Gate`](crate::dsp::gate::Gate), as a
 //! module: one gate per channel, one set of settings.
 
 use std::sync::Arc;
 
-use valverig_dsp::gate::Gate as Inner;
+use crate::dsp::gate::Gate as Inner;
 
 use crate::channels::{Channels, PerChannel};
 use crate::node::{Param, ParamSpec, Unit};

@@ -1,10 +1,10 @@
-//! The reverb, `valverig-dsp`'s [`Reverb`](valverig_dsp::reverb::Reverb), as a
+//! The reverb, the dsp stage [`Reverb`](crate::dsp::reverb::Reverb), as a
 //! module: mono in a mono rack, a stereo pair after a mix.
 
+use crate::dsp::reverb::{MAX_PREDELAY_MS, Reverb as Inner};
 use crate::node::{Node, Param, ParamSpec, Unit};
 use crate::{Error, Result};
 use std::sync::Arc;
-use valverig_dsp::reverb::{MAX_PREDELAY_MS, Reverb as Inner};
 
 /// How much of the output is tail.
 pub const MIX: ParamSpec = ParamSpec {

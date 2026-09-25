@@ -1,10 +1,10 @@
-//! The compressor, `valverig-dsp`'s
-//! [`Compressor`](valverig_dsp::compressor::Compressor), as a module: one
+//! The compressor, the dsp stage
+//! [`Compressor`](crate::dsp::compressor::Compressor), as a module: one
 //! compressor per channel, one set of settings.
 
 use std::sync::Arc;
 
-use valverig_dsp::compressor::Compressor as Inner;
+use crate::dsp::compressor::Compressor as Inner;
 
 use crate::channels::{Channels, PerChannel};
 use crate::node::{Param, ParamSpec, Unit};

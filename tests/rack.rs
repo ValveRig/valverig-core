@@ -3,13 +3,13 @@
 
 mod common;
 
-use common::{assert_bits, impulse_response, lane_chain, model, run, signal};
+use common::{assert_same_bits, impulse_response, lane_chain, model, noise, run_rack};
 use valverig_core::Error;
 use valverig_core::cabinet::Cabinet;
+use valverig_core::dsp::convolution::Convolver;
 use valverig_core::gain::Gain;
 use valverig_core::node::Node;
 use valverig_core::rack::{Lane, Rack};
-use valverig_dsp::convolution::Convolver;
 
 fn ir() -> Vec<f32> {
     impulse_response(2048, 99)
@@ -50,9 +50,9 @@ fn the_standard_rack_is_the_capture_and_cabinet_run_by_hand() {
     controls.set("reverb/mix", 0.0).unwrap();
     rack.prepare(48_000.0, 64).unwrap();
     assert_eq!(rack.channels_out(), 1);
-    let x = signal(1, 4096, 0.4);
-    let got = run(&mut rack, &x, &[64]);
-    assert_bits(&got[0], &by_hand("wavenet.nam", &ir, &x, 64), "mono rack");
+    let x = noise(1, 4096, 0.4);
+    let got = run_rack(&mut rack, &x, &[64]);
+    assert_same_bits(&got[0], &by_hand("wavenet.nam", &ir, &x, 64), "mono rack");
 }
 
 #[test]
@@ -77,15 +77,15 @@ fn two_lanes_hard_panned_are_two_rigs_side_by_side() {
     assert_eq!(controls.get("B/pan").unwrap(), 1.0);
     rack.prepare(48_000.0, 64).unwrap();
     assert_eq!(rack.channels_out(), 2);
-    let x = signal(2, 4096, 0.4);
-    let got = run(&mut rack, &x, &[64]);
+    let x = noise(2, 4096, 0.4);
+    let got = run_rack(&mut rack, &x, &[64]);
     // Hard pans are exact, and the other lane adds exactly nothing.
-    assert_bits(
+    assert_same_bits(
         &got[0],
         &by_hand("wavenet.nam", &ir, &x, 64),
         "left is lane A",
     );
-    assert_bits(
+    assert_same_bits(
         &got[1],
         &by_hand("lstm.nam", &ir, &x, 64),
         "right is lane B",
@@ -99,8 +99,8 @@ fn a_lane_in_the_centre_is_three_db_down_on_each_side() {
         .unwrap()
         .build();
     rack.prepare(48_000.0, 64).unwrap();
-    let x = signal(3, 256, 0.5);
-    let got = run(&mut rack, &x, &[64]);
+    let x = noise(3, 256, 0.5);
+    let got = run_rack(&mut rack, &x, &[64]);
     assert_eq!(got[0], got[1]);
     let want = std::f32::consts::FRAC_1_SQRT_2;
     for (a, b) in got[0].iter().zip(&x) {
@@ -122,9 +122,9 @@ fn lane_level_and_bypass_control_the_mix() {
         .unwrap()
         .build();
     rack.prepare(48_000.0, 64).unwrap();
-    let x = signal(4, 256, 0.5);
-    let got = run(&mut rack, &x, &[64]);
-    assert_bits(&got[0], &x, "A at 0 dB, hard left");
+    let x = noise(4, 256, 0.5);
+    let got = run_rack(&mut rack, &x, &[64]);
+    assert_same_bits(&got[0], &x, "A at 0 dB, hard left");
     let g = 10f32.powf(-6.0 / 20.0);
     for (a, b) in got[1].iter().zip(&x) {
         assert_eq!(a.to_bits(), (b * g).to_bits(), "B at -6 dB, hard right");
@@ -132,9 +132,9 @@ fn lane_level_and_bypass_control_the_mix() {
     // A bypassed lane adds nothing.
     controls.set_bypass("B", true).unwrap();
     assert!(controls.bypassed("B").unwrap());
-    let got = run(&mut rack, &x, &[64]);
+    let got = run_rack(&mut rack, &x, &[64]);
     assert!(got[1].iter().all(|&v| v == 0.0));
-    assert_bits(&got[0], &x, "A untouched");
+    assert_same_bits(&got[0], &x, "A untouched");
 }
 
 #[test]
@@ -147,7 +147,7 @@ fn the_reverb_after_the_lanes_keeps_the_pair() {
     rack.prepare(48_000.0, 64).unwrap();
     let mut x = vec![0.0f32; 48_000];
     x[0] = 0.5;
-    let got = run(&mut rack, &x, &[64]);
+    let got = run_rack(&mut rack, &x, &[64]);
     let energy = |s: &[f32]| s.iter().map(|v| (v * v) as f64).sum::<f64>();
     assert!(
         energy(&got[0][24_000..]) > 0.0 && energy(&got[1][24_000..]) > 0.0,
@@ -158,7 +158,7 @@ fn the_reverb_after_the_lanes_keeps_the_pair() {
 
 #[test]
 fn output_is_independent_of_how_frames_are_grouped() {
-    let x = signal(5, 3000, 0.4);
+    let x = noise(5, 3000, 0.4);
     for wide in [false, true] {
         let build = || {
             let (mut r, controls) = if wide {
@@ -173,7 +173,7 @@ fn output_is_independent_of_how_frames_are_grouped() {
             r.prepare(48_000.0, 128).unwrap();
             r
         };
-        let reference = run(&mut build(), &x, &[128]);
+        let reference = run_rack(&mut build(), &x, &[128]);
         for schedule in [
             vec![1usize],
             vec![7],
@@ -181,9 +181,9 @@ fn output_is_independent_of_how_frames_are_grouped() {
             vec![128, 1, 128, 2],
             vec![63, 65],
         ] {
-            let got = run(&mut build(), &x, &schedule);
+            let got = run_rack(&mut build(), &x, &schedule);
             for (c, (a, b)) in reference.iter().zip(&got).enumerate() {
-                assert_bits(
+                assert_same_bits(
                     a,
                     b,
                     &format!("wide {wide}, schedule {schedule:?}, channel {c}"),
@@ -300,14 +300,14 @@ fn a_capture_refuses_to_sit_after_a_mix() {
 
 #[test]
 fn bypass_takes_a_module_out_of_the_path() {
-    let x = signal(6, 1024, 0.4);
+    let x = noise(6, 1024, 0.4);
     let (mut rack, controls) = common::chain(model("wavenet.nam"), Some(Cabinet::new(&ir(), None)));
     rack.prepare(48_000.0, 128).unwrap();
     for name in ["gate", "compressor", "capture", "cabinet", "reverb"] {
         controls.set_bypass(name, true).unwrap();
     }
-    let got = run(&mut rack, &x, &[128]);
-    assert_bits(&got[0], &x, "two gains at 0 dB and a flat tone control");
+    let got = run_rack(&mut rack, &x, &[128]);
+    assert_same_bits(&got[0], &x, "two gains at 0 dB and a flat tone control");
 }
 
 #[test]
@@ -409,7 +409,7 @@ fn latency_sums_the_stages_and_takes_the_longest_lane() {
 
 #[test]
 fn reset_returns_a_wavenet_rack_to_its_settled_state() {
-    let x = signal(7, 2048, 0.4);
+    let x = noise(7, 2048, 0.4);
     let build = || {
         let (mut r, _) = lane_chain(vec![
             ("A", model("wavenet.nam"), Some(Cabinet::new(&ir(), None))),
@@ -418,13 +418,13 @@ fn reset_returns_a_wavenet_rack_to_its_settled_state() {
         r.prepare(48_000.0, 64).unwrap();
         r
     };
-    let fresh = run(&mut build(), &x, &[64]);
+    let fresh = run_rack(&mut build(), &x, &[64]);
     let mut used = build();
-    run(&mut used, &signal(8, 5000, 0.4), &[64]);
+    run_rack(&mut used, &noise(8, 5000, 0.4), &[64]);
     used.reset();
-    let after = run(&mut used, &x, &[64]);
+    let after = run_rack(&mut used, &x, &[64]);
     for c in 0..2 {
-        assert_bits(&fresh[c], &after[c], &format!("channel {c}"));
+        assert_same_bits(&fresh[c], &after[c], &format!("channel {c}"));
     }
 }
 
@@ -483,7 +483,7 @@ fn the_tone_control_lifts_the_bass() {
     let x: Vec<f32> = (0..24_000)
         .map(|i| (i as f32 / 48_000.0 * 2.0 * std::f32::consts::PI * 40.0).sin() * 0.3)
         .collect();
-    let y = run(&mut rack, &x, &[64]);
+    let y = run_rack(&mut rack, &x, &[64]);
     let rms = |s: &[f32]| (s.iter().map(|v| v * v).sum::<f32>() / s.len() as f32).sqrt();
     let gain = 20.0 * (rms(&y[0][12_000..]) / rms(&x[12_000..])).log10();
     assert!(gain > 5.5 && gain < 6.5, "bass at 40 Hz: {gain} dB");
@@ -494,7 +494,7 @@ fn a_block_larger_than_the_rack_was_prepared_for_is_split() {
     // CoreAudio can hand a callback more frames than it asked for. The rack
     // takes them, in blocks of at most what it was prepared for, and the
     // result is what the same frames give when the host splits them itself.
-    let x = signal(9, 3000, 0.4);
+    let x = noise(9, 3000, 0.4);
     let prepared = 64;
 
     let (mut whole, _) = common::chain(model("wavenet.nam"), Some(Cabinet::new(&ir(), None)));
@@ -504,9 +504,9 @@ fn a_block_larger_than_the_rack_was_prepared_for_is_split() {
 
     let (mut split, _) = common::chain(model("wavenet.nam"), Some(Cabinet::new(&ir(), None)));
     split.prepare(48_000.0, prepared).unwrap();
-    let want = run(&mut split, &x, &[prepared]);
+    let want = run_rack(&mut split, &x, &[prepared]);
 
-    assert_bits(&got, &want[0], "3000 frames at once against 64 at a time");
+    assert_same_bits(&got, &want[0], "3000 frames at once against 64 at a time");
 }
 
 #[test]
@@ -553,7 +553,7 @@ fn a_non_finite_block_is_silenced_and_the_feedback_path_is_cleared() {
     rack.prepare(48_000.0, 64).unwrap();
     controls.set("reverb/mix", 0.5).unwrap();
 
-    let x = signal(12, 64, 0.4);
+    let x = noise(12, 64, 0.4);
     let mut out = vec![0.0f32; 64];
     rack.process(&x, &mut [&mut out]);
     assert!(!rack.faulted(), "nothing wrong yet");
