@@ -106,7 +106,7 @@ pub enum Error {
     },
 
     /// An asset's stated sample rate is not one an audio file could have.
-    #[error("asset {asset:?} states sample_rate = {value}, which is not a rate between {min} and {max} Hz", min = crate::preset::asset::SAMPLE_RATE_MIN, max = crate::preset::asset::SAMPLE_RATE_MAX)]
+    #[error("asset {asset:?} states sample_rate = {value}, which is not a rate between {min} and {max} Hz", min = crate::MIN_SAMPLE_RATE, max = crate::MAX_SAMPLE_RATE)]
     BadSampleRate {
         /// The asset label.
         asset: String,
@@ -140,6 +140,13 @@ pub enum Error {
     /// own report.
     #[error("could not write the document: {0}")]
     Write(String),
+
+    /// A rack was asked to run at a sample rate outside
+    /// [`MIN_SAMPLE_RATE`](crate::MIN_SAMPLE_RATE) to
+    /// [`MAX_SAMPLE_RATE`](crate::MAX_SAMPLE_RATE), or at one that is not a
+    /// number.
+    #[error("a rack runs at {min} to {max} Hz, not at {0} Hz", min = crate::MIN_SAMPLE_RATE, max = crate::MAX_SAMPLE_RATE)]
+    UnsupportedSampleRate(f64),
 
     /// A module only works at one sample rate, and the rack is prepared at
     /// another.

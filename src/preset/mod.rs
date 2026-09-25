@@ -73,7 +73,7 @@
 //! second copy of the descriptors. [`snapshot`] writes a running rack's state
 //! back into the preset it was built from.
 
-pub(crate) mod asset;
+mod asset;
 mod document;
 mod hash;
 mod registry;

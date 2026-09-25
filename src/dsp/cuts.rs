@@ -20,7 +20,7 @@
 
 use crate::dsp::biquad::Biquad;
 use crate::dsp::one_pole;
-use crate::dsp::{MAX_SAMPLE_RATE, MIN_SAMPLE_RATE};
+use crate::{MAX_SAMPLE_RATE, MIN_SAMPLE_RATE};
 
 /// At or below this low-cut setting, in Hz, the high-pass is out of the
 /// path.

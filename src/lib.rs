@@ -108,3 +108,34 @@ pub mod tap;
 mod worker;
 
 pub use error::{Error, Result};
+
+/// The lowest sample rate anything here runs at, in Hz.
+pub const MIN_SAMPLE_RATE: f64 = 1_000.0;
+
+/// The highest sample rate anything here runs at, in Hz.
+///
+/// Well above every rate an audio interface offers, and low enough that the
+/// longest buffer a stage sizes from a rate, the delay's two seconds, stays
+/// under six megabytes. The bound exists so that a rate arriving from a
+/// device query, a preset or a test cannot turn into an allocation of an
+/// arbitrary size. A `.rig` document stating a rate outside the band is
+/// refused when it is read, and a rack refuses to be prepared outside it,
+/// rather than either failing later inside a module.
+pub const MAX_SAMPLE_RATE: f64 = 768_000.0;
+
+#[cfg(test)]
+mod tests {
+    /// `valverig-nam` refuses a capture stating a rate outside the same
+    /// band, so every capture it reads is one a rack here can run.
+    #[test]
+    fn the_band_is_the_one_valverig_nam_reads_captures_in() {
+        assert_eq!(
+            crate::MIN_SAMPLE_RATE,
+            valverig_nam::format::MIN_SAMPLE_RATE
+        );
+        assert_eq!(
+            crate::MAX_SAMPLE_RATE,
+            valverig_nam::format::MAX_SAMPLE_RATE
+        );
+    }
+}

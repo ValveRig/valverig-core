@@ -580,3 +580,37 @@ fn a_non_finite_block_is_silenced_and_the_feedback_path_is_cleared() {
     rack.reset();
     assert!(!rack.faulted(), "which clears it");
 }
+
+#[test]
+fn a_rate_outside_the_band_is_refused_before_any_module_sees_it() {
+    let (mut rack, _) = Rack::builder()
+        .push("drive", valverig_core::drive::Drive::new())
+        .unwrap()
+        .push("reverb", valverig_core::reverb::Reverb::new())
+        .unwrap()
+        .build();
+    // Each of these would otherwise reach a module's own check and panic
+    // there, on whichever thread prepared the rack.
+    for rate in [
+        0.0,
+        500.0,
+        valverig_core::MIN_SAMPLE_RATE - 1.0,
+        valverig_core::MAX_SAMPLE_RATE + 1.0,
+        f64::NAN,
+        f64::INFINITY,
+    ] {
+        let e = rack.prepare(rate, 128).unwrap_err();
+        assert!(
+            matches!(e, Error::UnsupportedSampleRate(r) if r.to_bits() == rate.to_bits()),
+            "{rate}: {e}"
+        );
+    }
+    for rate in [
+        valverig_core::MIN_SAMPLE_RATE,
+        48_000.0,
+        valverig_core::MAX_SAMPLE_RATE,
+    ] {
+        rack.prepare(rate, 128)
+            .unwrap_or_else(|e| panic!("{rate}: {e}"));
+    }
+}

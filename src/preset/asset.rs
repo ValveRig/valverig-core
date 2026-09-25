@@ -3,20 +3,8 @@
 use super::hash::Hash;
 use super::text;
 use crate::error::{Error, Result};
+use crate::{MAX_SAMPLE_RATE, MIN_SAMPLE_RATE};
 use std::fmt;
-
-/// The lowest sample rate an asset may state, in Hz.
-///
-/// The same bound the rest of ValveRig works to, so that an asset this
-/// crate accepts is one the DSP stages beside it will also run at: a rate
-/// they refuse would otherwise pass here and fail later, when a rack is
-/// prepared rather than when the document is read.
-pub(crate) const SAMPLE_RATE_MIN: f64 = 1_000.0;
-
-/// The highest sample rate an asset may state, in Hz. Well above any rate a
-/// capture or an impulse response is recorded at, and low enough that a
-/// document cannot state one that overflows a buffer length computed from it.
-pub(crate) const SAMPLE_RATE_MAX: f64 = 768_000.0;
 
 /// What kind of thing an asset is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -120,7 +108,7 @@ impl Asset {
         match (self.kind, self.sample_rate) {
             (AssetKind::Nam, Some(_)) => Err(Error::UnwantedSampleRate(label.to_string())),
             (_, Some(rate))
-                if !(rate.is_finite() && (SAMPLE_RATE_MIN..=SAMPLE_RATE_MAX).contains(&rate)) =>
+                if !(rate.is_finite() && (MIN_SAMPLE_RATE..=MAX_SAMPLE_RATE).contains(&rate)) =>
             {
                 Err(Error::BadSampleRate {
                     asset: label.to_string(),
@@ -171,20 +159,20 @@ mod tests {
 
     #[test]
     fn a_stated_rate_is_a_rate_an_audio_file_could_have() {
-        for ok in [SAMPLE_RATE_MIN, 44_100.0, 48_000.0, SAMPLE_RATE_MAX] {
+        for ok in [MIN_SAMPLE_RATE, 44_100.0, 48_000.0, MAX_SAMPLE_RATE] {
             assert!(ir(Some(ok)).validate("cab").is_ok(), "{ok}");
         }
-        // The band is the one every ValveRig crate works to, so a rate the
-        // DSP stages would refuse is refused here, where the document is
-        // read, rather than later when a rack is prepared.
+        // The band is the crate's, so a rate the DSP would refuse is
+        // refused here, where the document is read, rather than later when
+        // a rack is prepared.
         for bad in [
             0.0,
             1.0,
-            SAMPLE_RATE_MIN - 1.0,
+            MIN_SAMPLE_RATE - 1.0,
             -48_000.0,
             f64::NAN,
             f64::INFINITY,
-            SAMPLE_RATE_MAX + 1.0,
+            MAX_SAMPLE_RATE + 1.0,
             1e300,
         ] {
             assert!(

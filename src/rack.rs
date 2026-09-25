@@ -41,7 +41,7 @@
 //! is padded with a delay of the longest lane's latency less its own, so
 //! the mix adds what left the split together.
 
-use crate::gain::db_to_linear;
+use crate::dsp::decibels;
 use crate::node::{Node, Param, ParamSpec, Unit};
 use crate::{Error, Result};
 use std::sync::Arc;
@@ -270,7 +270,11 @@ impl Lane {
     /// The gains the lane is heading for: a constant-power pan of a mono
     /// lane, a balance of a stereo one, times the level.
     fn targets(&self) -> [f32; 2] {
-        pan_gains(self.width, self.pan.get(), db_to_linear(self.level.get()))
+        pan_gains(
+            self.width,
+            self.pan.get(),
+            decibels::to_linear(self.level.get()),
+        )
     }
 
     fn prepare(&mut self, sample_rate: f64, max_block: usize, width: usize) -> Result<()> {
@@ -530,8 +534,14 @@ impl Rack {
     /// Prepare every module for blocks of up to `max_block` frames at
     /// `sample_rate`, each for the width of the signal where it sits.
     /// Allocates; call it before the audio thread starts, and again on any
-    /// change. A module that cannot run there says so.
+    /// change. A module that cannot run there says so, and a rate outside
+    /// [`MIN_SAMPLE_RATE`](crate::MIN_SAMPLE_RATE) to
+    /// [`MAX_SAMPLE_RATE`](crate::MAX_SAMPLE_RATE) is refused before any
+    /// module sees it.
     pub fn prepare(&mut self, sample_rate: f64, max_block: usize) -> Result<()> {
+        if !(crate::MIN_SAMPLE_RATE..=crate::MAX_SAMPLE_RATE).contains(&sample_rate) {
+            return Err(Error::UnsupportedSampleRate(sample_rate));
+        }
         self.stop_workers();
         let mut width = 1;
         for stage in &mut self.stages {

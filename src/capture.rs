@@ -1,6 +1,6 @@
 //! The neural capture, `valverig-nam`'s [`Model`], as a module.
 
-use crate::gain::db_to_linear;
+use crate::dsp::decibels;
 use crate::node::Node;
 use crate::{Error, Result};
 use valverig_nam::loader::Model;
@@ -41,7 +41,7 @@ impl Capture {
 
     /// A fixed gain after the model, in dB.
     pub fn set_gain_db(&mut self, db: f32) {
-        self.gain = db_to_linear(db);
+        self.gain = decibels::to_linear(db);
     }
 
     /// The fixed gain after the model, in dB.

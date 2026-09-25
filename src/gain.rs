@@ -1,6 +1,7 @@
 //! A level control, smoothed.
 
 use crate::Result;
+use crate::dsp::decibels;
 use crate::node::{Node, Param, ParamSpec, Unit};
 use std::sync::Arc;
 
@@ -13,11 +14,6 @@ pub const LEVEL: ParamSpec = ParamSpec {
     max: 24.0,
     default: 0.0,
 };
-
-/// Decibels to a linear factor.
-pub fn db_to_linear(db: f32) -> f32 {
-    10f32.powf(db / 20.0)
-}
 
 /// Multiply by a level, following changes with a 5 ms one-pole so a knob
 /// never clicks. One smoother per channel, one level for all of them.
@@ -47,7 +43,7 @@ impl Gain {
     }
 
     fn target(&self) -> f32 {
-        db_to_linear(self.params[0].get())
+        decibels::to_linear(self.params[0].get())
     }
 }
 

@@ -5,9 +5,9 @@
 
 mod common;
 
-use common::{assert_same_bits, noise, run_rack};
+use common::{assert_same_bits, from_db, noise, run_rack};
 use valverig_core::bus::{BusReturn, BusSend};
-use valverig_core::gain::{Gain, db_to_linear};
+use valverig_core::gain::Gain;
 use valverig_core::rack::{Lane, Rack};
 
 #[test]
@@ -27,7 +27,7 @@ fn a_return_adds_what_a_send_before_it_put_on_the_bus() {
     controls.set("loop/level_db", -6.0).unwrap();
     rack.prepare(48_000.0, 128).unwrap();
     let x = noise(1, 4096, 0.5);
-    let g = db_to_linear(-6.0);
+    let g = from_db(-6.0);
     let y = run_rack(&mut rack, &x, &[128, 1, 7, 64]);
     let want: Vec<f32> = x.iter().map(|v| v * g + v).collect();
     assert_same_bits(&y[0], &want, "the loop at -6 dB plus the dry bus");
@@ -44,7 +44,7 @@ fn a_return_adds_what_a_send_before_it_put_on_the_bus() {
     controls.set("return/level_db", -6.0).unwrap();
     rack.reset();
     let y = run_rack(&mut rack, &x, &[128]);
-    let (s, r) = (db_to_linear(-12.0), db_to_linear(-6.0));
+    let (s, r) = (from_db(-12.0), from_db(-6.0));
     let want: Vec<f32> = x.iter().map(|v| v * g + (v * s) * r).collect();
     assert_same_bits(&y[0], &want, "send -12, return -6");
 
@@ -70,7 +70,7 @@ fn a_return_before_its_send_hears_nothing() {
     rack.prepare(48_000.0, 128).unwrap();
     let x = noise(2, 2048, 0.5);
     let y = run_rack(&mut rack, &x, &[128]);
-    let g = db_to_linear(-6.0);
+    let g = from_db(-6.0);
     let want: Vec<f32> = x.iter().map(|v| v * g).collect();
     assert_same_bits(&y[0], &want, "the bus is emptied every block");
 }
@@ -103,7 +103,7 @@ fn a_send_in_a_lane_reaches_a_return_after_the_mix_and_the_workers_agree() {
             .build()
     };
     let x = noise(3, 8192, 0.5);
-    let (ga, gb) = (db_to_linear(-6.0), db_to_linear(3.0));
+    let (ga, gb) = (from_db(-6.0), from_db(3.0));
     let mut outs = Vec::new();
     for parallel in [false, true] {
         let (mut rack, controls) = build();

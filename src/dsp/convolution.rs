@@ -35,6 +35,23 @@
 //! per `P` samples. [`partition_for`] picks `P` from the IR length to balance
 //! the two.
 //!
+//! Multiples of real time at 48 kHz on one Apple M3 Max core, median of five
+//! runs of two seconds in blocks of 64; `*` is what [`Convolver::new`] picks:
+//!
+//! | IR taps | P=32 | P=64 | P=128 | P=256 | P=512 |
+//! |---:|---:|---:|---:|---:|---:|
+//! | 512 | **1619*** | 1403 | 966 | 552 | 302 |
+//! | 2,048 | 737 | **990*** | 807 | 489 | 277 |
+//! | 8,192 | 233 | 459 | **572*** | 437 | 267 |
+//! | 24,000 | 84 | 189 | 315 | **335*** | 241 |
+//! | 96,000 | 21 | 51 | 107 | **158*** | 173 |
+//!
+//! The marked column is fastest at every length but the last, and blocks of
+//! 512 measure within noise of blocks of 64. At 96,000 taps, two seconds, the
+//! cap at 256 gives up about a tenth of the speed of 512 for a bound on the
+//! work done at any one partition boundary: one transform of 512 plus the
+//! tail sum, a few percent of a 32-frame block's deadline.
+//!
 //! # Accuracy
 //!
 //! Single-precision transforms. Against a double-precision direct convolution
@@ -76,7 +93,7 @@ const PARTITION_LIMIT: usize = 1 << 16;
 /// 512 to 96,000 taps, the fastest partition is that power of two for every
 /// length, and the choice does not depend on the block size: the
 /// frequency-domain work is done once per `P` samples wherever the block
-/// boundaries fall. `partition_sweep` in `tests/convolution.rs` is the
+/// boundaries fall. `partition_sweep` in `tests/benchmark.rs` is the
 /// measurement.
 pub fn partition_for(ir_len: usize) -> usize {
     (2 * ir_len)

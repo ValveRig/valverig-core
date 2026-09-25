@@ -5,9 +5,9 @@
 
 mod common;
 
-use common::{assert_same_bits, noise, run_rack};
+use common::{assert_same_bits, from_db, noise, run_rack};
 use valverig_core::delay::Delay;
-use valverig_core::gain::{Gain, db_to_linear};
+use valverig_core::gain::Gain;
 use valverig_core::rack::{Lane, Rack};
 use valverig_core::tap::Tap;
 
@@ -26,7 +26,7 @@ fn a_tap_adds_its_point_in_the_chain_to_the_output() {
     rack.prepare(48_000.0, 128).unwrap();
     assert_eq!(rack.channels_out(), 1);
     let x = noise(1, 4096, 0.5);
-    let g = db_to_linear(-6.0);
+    let g = from_db(-6.0);
     let y = run_rack(&mut rack, &x, &[128, 1, 7, 64]);
     let want: Vec<f32> = x.iter().map(|v| v * g + v).collect();
     assert_same_bits(&y[0], &want, "the path at -6 dB plus the tap at unity");
@@ -43,7 +43,7 @@ fn a_tap_adds_its_point_in_the_chain_to_the_output() {
     controls.set("tap/level_db", -12.0).unwrap();
     rack.reset();
     let y = run_rack(&mut rack, &x, &[128]);
-    let t = db_to_linear(-12.0);
+    let t = from_db(-12.0);
     let want: Vec<f32> = x.iter().map(|v| v + v * t).collect();
     assert_same_bits(&y[0], &want, "the tap at -12 dB over the bare path");
 }
@@ -77,7 +77,7 @@ fn a_tap_before_the_lanes_is_panned_into_the_pair_like_a_lane() {
     let y = run_rack(&mut rack, &x, &[128]);
     // A hard left at -6, B hard right at +3, the tap centred: a constant-
     // power pan puts it 3 dB down on each side.
-    let (ga, gb) = (db_to_linear(-6.0), db_to_linear(3.0));
+    let (ga, gb) = (from_db(-6.0), from_db(3.0));
     let centre = std::f32::consts::FRAC_PI_4.cos();
     for i in 0..x.len() {
         let (wl, wr) = (x[i] * ga + x[i] * centre, x[i] * gb + x[i] * centre);

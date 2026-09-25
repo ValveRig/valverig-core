@@ -10,7 +10,7 @@
 //! after the lane has been joined, so nothing is shared while it runs.
 
 use crate::Result;
-use crate::gain::db_to_linear;
+use crate::dsp::decibels;
 use crate::node::{Node, Param, ParamSpec};
 use crate::rack::{LANE_LEVEL, LANE_PAN, pan_gains};
 use std::sync::Arc;
@@ -63,14 +63,14 @@ impl Tap {
         pan_gains(
             self.width,
             self.params[1].get(),
-            db_to_linear(self.params[0].get()),
+            decibels::to_linear(self.params[0].get()),
         )
     }
 
     /// The gain the tap is heading for into a mono output: the level, with
     /// no pan law, so a centred tap is at unity rather than 3 dB down.
     fn mono_target(&self) -> f32 {
-        db_to_linear(self.params[0].get())
+        decibels::to_linear(self.params[0].get())
     }
 }
 

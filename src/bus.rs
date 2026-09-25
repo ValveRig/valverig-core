@@ -15,7 +15,7 @@
 //! is the mean of the two.
 
 use crate::Result;
-use crate::gain::db_to_linear;
+use crate::dsp::decibels;
 use crate::node::{Node, Param, ParamSpec, Unit};
 use crate::rack::{BUSES, LANE_LEVEL};
 use std::sync::Arc;
@@ -92,18 +92,18 @@ impl Node for BusSend {
         self.buf = [vec![0.0; max_block], vec![0.0; max_block]];
         self.held = 0;
         self.coeff = coeff(sample_rate);
-        self.gain = db_to_linear(self.params[0].get());
+        self.gain = decibels::to_linear(self.params[0].get());
         Ok(())
     }
 
     fn reset(&mut self) {
         self.held = 0;
-        self.gain = db_to_linear(self.params[0].get());
+        self.gain = decibels::to_linear(self.params[0].get());
     }
 
     fn process(&mut self, input: &[&[f32]], output: &mut [&mut [f32]]) {
         let n = input[0].len();
-        let target = db_to_linear(self.params[0].get());
+        let target = decibels::to_linear(self.params[0].get());
         let (coeff, mut g) = (self.coeff, self.gain);
         for i in 0..n {
             g += coeff * (target - g);
@@ -181,13 +181,13 @@ impl Node for BusReturn {
         self.buf = [vec![0.0; max_block], vec![0.0; max_block]];
         self.got = 0;
         self.coeff = coeff(sample_rate);
-        self.gain = db_to_linear(self.params[0].get());
+        self.gain = decibels::to_linear(self.params[0].get());
         Ok(())
     }
 
     fn reset(&mut self) {
         self.got = 0;
-        self.gain = db_to_linear(self.params[0].get());
+        self.gain = decibels::to_linear(self.params[0].get());
     }
 
     fn receives(&self) -> Option<usize> {
@@ -208,7 +208,7 @@ impl Node for BusReturn {
 
     fn process(&mut self, input: &[&[f32]], output: &mut [&mut [f32]]) {
         let n = input[0].len();
-        let target = db_to_linear(self.params[0].get());
+        let target = decibels::to_linear(self.params[0].get());
         let got = self.got.min(n);
         if got == 0 {
             // Nothing on the bus this block: a wire.

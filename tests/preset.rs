@@ -1,4 +1,4 @@
-//! A rack from the format's wide-rig fixture, assets resolved by content;
+//! A rack from the wide-rig fixture, assets resolved by content;
 //! the values landing on the controls; the state written back and read
 //! again; and the refusals, each naming what is wrong.
 
@@ -12,7 +12,7 @@ use valverig_nam::loader::Model;
 const FIXTURE: &str = "assets/plexi-tweed-wide.rig";
 
 /// Where the resolver looks for the capture files the preset's asset hints
-/// name: the reference models in `valverig-nam`.
+/// name: the reference captures in `assets/models`.
 fn models() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("assets/models")
 }

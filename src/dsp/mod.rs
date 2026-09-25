@@ -38,17 +38,7 @@ pub mod cuts;
 pub mod denormals;
 pub mod resample;
 
-/// The lowest sample rate any stage accepts.
-const MIN_SAMPLE_RATE: f64 = 1_000.0;
-
-/// The highest sample rate any stage accepts.
-///
-/// Well above every rate an audio interface offers, and low enough that the
-/// longest buffer a stage sizes from a rate, the delay's two seconds, stays
-/// under six megabytes. The bound exists so that a rate arriving from
-/// a device query, a preset or a test cannot turn into an allocation of an
-/// arbitrary size.
-const MAX_SAMPLE_RATE: f64 = 768_000.0;
+use crate::{MAX_SAMPLE_RATE, MIN_SAMPLE_RATE};
 
 /// A sample rate as the `f32` the coefficients are computed in.
 ///
