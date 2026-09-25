@@ -5,7 +5,7 @@
 //! a two-second decay is still producing non-zero samples twenty-three
 //! seconds later, and a tone control returned to flat still has a fraction
 //! of a signal in its state, so it cannot take the bit-exact copy-through
-//! path that [`crate::dsp::eq::ThreeBand`] is built around. So each stage cuts
+//! path that [`crate::eq::Mono`] is built around. So each stage cuts
 //! its own tail once what is left cannot affect the output.
 //!
 //! # These floors are not about denormals

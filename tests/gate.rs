@@ -6,7 +6,7 @@ mod common;
 use common::{
     SR, assert_same_bits, dc, from_db, independent_of_block_grouping, ms, noise, run, sine,
 };
-use valverig_core::dsp::gate::{Gate, HYSTERESIS_DB};
+use valverig_core::gate::{HYSTERESIS_DB, Mono as Gate};
 
 #[test]
 fn stays_closed_below_the_threshold_and_opens_above_it() {

@@ -63,16 +63,16 @@ fn allocations_during<F: FnOnce()>(f: F) -> usize {
 /// Each DSP stage on its own, every setting turning.
 mod stages {
     use super::allocations_during;
-    use valverig_core::dsp::chorus::Chorus;
-    use valverig_core::dsp::compressor::Compressor;
+    use valverig_core::chorus::Mono as Chorus;
+    use valverig_core::compressor::Mono as Compressor;
+    use valverig_core::delay::Mono as Delay;
+    use valverig_core::drive::Mono as Drive;
     use valverig_core::dsp::convolution::Convolver;
-    use valverig_core::dsp::delay::Delay;
-    use valverig_core::dsp::drive::Drive;
-    use valverig_core::dsp::eq::ThreeBand;
-    use valverig_core::dsp::gate::Gate;
-    use valverig_core::dsp::phaser::Phaser;
     use valverig_core::dsp::resample::Resampler;
-    use valverig_core::dsp::reverb::Reverb;
+    use valverig_core::eq::Mono as ThreeBand;
+    use valverig_core::gate::Mono as Gate;
+    use valverig_core::phaser::Mono as Phaser;
+    use valverig_core::reverb::Fdn as Reverb;
 
     /// Block lengths that never repeat in step with anything.
     const SCHEDULE: [usize; 6] = [1, 7, 512, 3, 13, 64];
