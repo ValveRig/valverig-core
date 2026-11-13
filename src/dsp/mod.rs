@@ -5,7 +5,9 @@
 //! the two together. [`resample::Resampler`] converts between an
 //! interface's sample rate and the rate a capture was made at, which is how
 //! a host runs a rack at a rate its device does not offer. [`denormals`]
-//! sets the thread's flush-to-zero mode around the rack. Inside the crate,
+//! sets the thread's flush-to-zero mode around the rack, and
+//! [`pitch::Detector`] reads the pitch of a string for a tuner, beside the
+//! signal path and not in it. Inside the crate,
 //! the filters, delay lines, one-pole smoothers and tail floors here are
 //! what each module's own DSP is built from.
 //!
@@ -36,6 +38,7 @@ pub(crate) mod tails;
 pub mod convolution;
 pub mod cuts;
 pub mod denormals;
+pub mod pitch;
 pub mod resample;
 
 use crate::{MAX_SAMPLE_RATE, MIN_SAMPLE_RATE};

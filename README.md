@@ -39,6 +39,9 @@ lane's result into a stereo pair. `preset::build` does all of it from a
 `.rig` document, and `preset::snapshot` writes a running rack back into one.
 Every stage also runs without a rack: `drive::Mono`, `reverb::Fdn`,
 `dsp::convolution::Convolver` and the rest take a block and return one.
+`dsp::pitch::Detector` is the one piece that sits beside the signal path
+and not in it: it reads the pitch of a string from a copy of the input, to
+the cent, which is what a tuner needs.
 
 ## Tests
 
