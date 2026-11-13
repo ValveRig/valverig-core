@@ -31,7 +31,7 @@ impl Preset {
     /// [`validate`](Self::validate) finds.
     ///
     /// ```
-    /// use valverig_core::preset::Preset;
+    /// use valrig_core::preset::Preset;
     ///
     /// let preset = Preset::parse("
     ///     format_version = 1
@@ -45,7 +45,7 @@ impl Preset {
     /// ")?;
     ///
     /// assert_eq!(preset.values(), [("input/level_db".to_string(), -3.0)]);
-    /// # Ok::<(), valverig_core::Error>(())
+    /// # Ok::<(), valrig_core::Error>(())
     /// ```
     pub fn parse(text: &str) -> Result<Self> {
         let raw: Document = toml::from_str(text).map_err(|e| Error::Toml(e.to_string()))?;
@@ -85,12 +85,12 @@ impl Preset {
     /// the writer refuses the document.
     ///
     /// ```
-    /// use valverig_core::preset::Preset;
+    /// use valrig_core::preset::Preset;
     ///
     /// let preset = Preset::new("Clean");
     /// let text = preset.to_toml()?;
     /// assert_eq!(Preset::parse(&text)?, preset);
-    /// # Ok::<(), valverig_core::Error>(())
+    /// # Ok::<(), valrig_core::Error>(())
     /// ```
     pub fn to_toml(&self) -> Result<String> {
         self.validate()?;

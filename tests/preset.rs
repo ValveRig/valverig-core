@@ -3,11 +3,11 @@
 //! again; and the refusals, each naming what is wrong.
 
 use std::path::{Path, PathBuf};
-use valverig_core::Error;
-use valverig_core::preset::{
+use valrig_core::Error;
+use valrig_core::preset::{
     self, Asset, AssetKind, BuildOptions, Loaded, Preset, ResolveError, Stage, asset_hash,
 };
-use valverig_nam::loader::Model;
+use valrig_nam::loader::Model;
 
 const FIXTURE: &str = "assets/plexi-tweed-wide.rig";
 
@@ -255,7 +255,7 @@ fn the_format_checks_run_first() {
 #[test]
 fn the_pedals_and_the_tap_build_from_their_types_and_write_back() {
     use std::collections::BTreeMap;
-    use valverig_core::preset::Module;
+    use valrig_core::preset::Module;
     let module = |type_id: &str, name: &str| Module {
         type_id: type_id.into(),
         name: name.into(),
@@ -363,7 +363,7 @@ fn a_host_can_ask_for_every_capture_at_one_level() {
         if same { "agree" } else { "differ" }
     );
     assert!(lb.iter().all(|v| v.is_finite()));
-    let mut c = valverig_core::capture::Capture::new(
+    let mut c = valrig_core::capture::Capture::new(
         Model::from_file(Path::new(env!("CARGO_MANIFEST_DIR")).join("assets/models/wavenet.nam"))
             .unwrap(),
     );

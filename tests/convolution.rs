@@ -10,7 +10,7 @@
 mod common;
 
 use common::{cabinet, noise};
-use valverig_core::dsp::convolution::{Convolver, partition_for};
+use valrig_core::dsp::convolution::{Convolver, partition_for};
 
 fn direct_f64(ir: &[f32], x: &[f32]) -> Vec<f64> {
     let mut y = vec![0.0f64; x.len()];

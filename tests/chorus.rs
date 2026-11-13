@@ -5,7 +5,7 @@
 mod common;
 
 use common::{SR, assert_same_bits, goertzel, independent_of_block_grouping, noise, run, sine};
-use valverig_core::chorus::{BASE_MS, Mono as Chorus};
+use valrig_core::chorus::{BASE_MS, Mono as Chorus};
 
 #[test]
 fn a_mix_of_zero_is_the_input_bit_for_bit() {

@@ -1,16 +1,27 @@
 [package]
-name = "valverig-core"
+name = "valrig-core"
 version = "0.0.1"
 edition = "2024"
 rust-version = "1.88"
-description = "The ValveRig engine: a rack of modules, the controls on it, presets in and out, and an allocation-free process() that runs anywhere"
+description = "The Valrig engine: a rack of modules, the controls on it, presets in and out, and an allocation-free process() that runs anywhere"
 license = "MIT"
-repository = "https://github.com/ValveRig/valverig-core"
+repository = "https://github.com/valrig-amp/valrig-core"
+
+[features]
+# Opening an audio device and running a rack in its callback
+# (`valrig_core::io`). Off unless asked for: a plugin or a worklet is handed
+# its audio, and has no use for a host's device layer.
+io = ["dep:cpal"]
 
 [dependencies]
-valverig-nam = "0.0.1"
+valrig-nam = "0.0.1"
 blake3 = { version = "1.8.7", default-features = false }
+cpal = { version = "0.15", optional = true }
 realfft = "3.5.0"
 serde = { version = "1.0.229", features = ["derive"] }
 thiserror = "2.0.20"
 toml = "1.1.4"
+
+# docs.rs shows the device side too.
+[package.metadata.docs.rs]
+all-features = true

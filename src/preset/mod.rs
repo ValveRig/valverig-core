@@ -5,7 +5,7 @@
 //! read and edited by hand.
 //!
 //! ```
-//! use valverig_core::preset::{Preset, Stage};
+//! use valrig_core::preset::{Preset, Stage};
 //!
 //! let mut preset = Preset::parse(include_str!("../../assets/plexi-tweed-wide.rig"))?;
 //!
@@ -19,7 +19,7 @@
 //! preset.set_bypass("reverb", true)?;
 //! let text = preset.to_toml()?;
 //! assert_eq!(Preset::parse(&text)?, preset);
-//! # Ok::<(), valverig_core::Error>(())
+//! # Ok::<(), valrig_core::Error>(())
 //! ```
 //!
 //! # The document
@@ -92,7 +92,7 @@ use std::collections::{BTreeMap, BTreeSet};
 /// against to know it found the right file.
 ///
 /// ```
-/// use valverig_core::preset::asset_hash;
+/// use valrig_core::preset::asset_hash;
 ///
 /// assert_eq!(
 ///     asset_hash(b"hello").as_str(),

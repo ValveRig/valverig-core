@@ -5,7 +5,7 @@
 mod common;
 
 use common::{SR, assert_same_bits, independent_of_block_grouping, noise, rms, run, sine};
-use valverig_core::phaser::{CENTRE_HZ, Mono as Phaser};
+use valrig_core::phaser::{CENTRE_HZ, Mono as Phaser};
 
 /// The steady-state gain at `hz`, in dB, with the sweep held at the centre.
 fn gain_db(hz: f32) -> f32 {

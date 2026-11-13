@@ -4,7 +4,7 @@
 mod common;
 
 use common::{SR, assert_same_bits, from_db, independent_of_block_grouping, ms, noise, run, to_db};
-use valverig_core::compressor::Mono as Compressor;
+use valrig_core::compressor::Mono as Compressor;
 
 /// A fresh compressor with a hard knee and fast times, so the static curve
 /// can be read off a settled level.

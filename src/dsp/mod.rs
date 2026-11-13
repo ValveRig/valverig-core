@@ -15,7 +15,7 @@
 //! # Running a cabinet
 //!
 //! ```
-//! use valverig_core::dsp::convolution::Convolver;
+//! use valrig_core::dsp::convolution::Convolver;
 //!
 //! let ir: Vec<f32> = (0..2048).map(|i| (-(i as f32) / 300.0).exp() * 0.1).collect();
 //! let mut cab = Convolver::new(&ir);   // allocates; before the audio thread starts

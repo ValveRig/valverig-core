@@ -5,8 +5,8 @@
 //! back as an [`Error`], never as a panic, an abort, or a silent acceptance.
 
 use std::collections::BTreeMap;
-use valverig_core::Error;
-use valverig_core::preset::{Lane, Module, Preset, Stage};
+use valrig_core::Error;
+use valrig_core::preset::{Lane, Module, Preset, Stage};
 
 const HEAD: &str = "format_version = 1\nname = \"x\"\n";
 const HASH: &str = "blake3:0000000000000000000000000000000000000000000000000000000000000000";
@@ -322,8 +322,7 @@ fn a_module_can_only_name_an_asset_the_preset_carries() {
 #[test]
 fn a_parallel_stage_has_lanes_in_it() {
     let mut p = Preset::new("x");
-    p.stages
-        .push(valverig_core::preset::Stage::Lanes(Vec::new()));
+    p.stages.push(valrig_core::preset::Stage::Lanes(Vec::new()));
     let e = p.validate().unwrap_err();
     assert!(
         matches!(&e, Error::Shape(m) if m.contains("at least one lane")),
@@ -359,7 +358,7 @@ fn setting_a_value_refuses_what_it_cannot_reach() {
 
 #[test]
 fn a_preset_that_declares_more_than_a_reader_will_build_is_refused() {
-    use valverig_core::preset::{MAX_LANES, MAX_MODULES, MAX_STAGES};
+    use valrig_core::preset::{MAX_LANES, MAX_MODULES, MAX_STAGES};
     let module = |name: String| Module {
         type_id: "std.gain".into(),
         name,

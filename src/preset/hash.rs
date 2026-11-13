@@ -20,7 +20,7 @@ const PREFIX: &str = "blake3:";
 /// and two presets naming the same capture agree character for character.
 ///
 /// ```
-/// use valverig_core::preset::{asset_hash, Hash};
+/// use valrig_core::preset::{asset_hash, Hash};
 ///
 /// let address = asset_hash(b"the bytes of a capture");
 /// assert!(address.as_str().starts_with("blake3:"));

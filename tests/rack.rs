@@ -6,12 +6,12 @@ mod common;
 use common::{
     assert_same_bits, impulse_response, lane_chain, model, moved_and_back, noise, run_rack,
 };
-use valverig_core::Error;
-use valverig_core::cabinet::Cabinet;
-use valverig_core::dsp::convolution::Convolver;
-use valverig_core::gain::Gain;
-use valverig_core::node::Node;
-use valverig_core::rack::{Lane, Rack};
+use valrig_core::Error;
+use valrig_core::cabinet::Cabinet;
+use valrig_core::dsp::convolution::Convolver;
+use valrig_core::gain::Gain;
+use valrig_core::node::Node;
+use valrig_core::rack::{Lane, Rack};
 
 fn ir() -> Vec<f32> {
     impulse_response(2048, 99)
@@ -287,7 +287,7 @@ fn a_capture_refuses_to_sit_after_a_mix() {
         .unwrap()
         .push(
             "amp",
-            valverig_core::capture::Capture::new(model("wavenet.nam")),
+            valrig_core::capture::Capture::new(model("wavenet.nam")),
         )
         .unwrap()
         .build();
@@ -369,7 +369,7 @@ impl Node for Delayed {
     fn type_id(&self) -> &'static str {
         "test.delayed"
     }
-    fn prepare(&mut self, _: f64, _: usize, _: usize) -> valverig_core::Result<()> {
+    fn prepare(&mut self, _: f64, _: usize, _: usize) -> valrig_core::Result<()> {
         Ok(())
     }
     fn reset(&mut self) {}
@@ -515,7 +515,7 @@ fn a_block_larger_than_the_rack_was_prepared_for_is_split() {
 fn a_rack_and_its_controls_are_send_and_sync() {
     fn assert_send_sync<T: Send + Sync>() {}
     assert_send_sync::<Rack>();
-    assert_send_sync::<valverig_core::rack::Controls>();
+    assert_send_sync::<valrig_core::rack::Controls>();
 }
 
 /// A wire that can be told to emit a NaN, for the output guard.
@@ -526,7 +526,7 @@ impl Node for Poison {
     fn type_id(&self) -> &'static str {
         "test.poison"
     }
-    fn prepare(&mut self, _: f64, _: usize, _: usize) -> valverig_core::Result<()> {
+    fn prepare(&mut self, _: f64, _: usize, _: usize) -> valrig_core::Result<()> {
         Ok(())
     }
     fn reset(&mut self) {}
@@ -549,7 +549,7 @@ fn a_non_finite_block_is_silenced_and_the_feedback_path_is_cleared() {
         .unwrap()
         .push("poison", Poison(poison.clone()))
         .unwrap()
-        .push("reverb", valverig_core::reverb::Reverb::new())
+        .push("reverb", valrig_core::reverb::Reverb::new())
         .unwrap()
         .build();
     rack.prepare(48_000.0, 64).unwrap();
@@ -586,9 +586,9 @@ fn a_non_finite_block_is_silenced_and_the_feedback_path_is_cleared() {
 #[test]
 fn a_rate_outside_the_band_is_refused_before_any_module_sees_it() {
     let (mut rack, _) = Rack::builder()
-        .push("drive", valverig_core::drive::Drive::new())
+        .push("drive", valrig_core::drive::Drive::new())
         .unwrap()
-        .push("reverb", valverig_core::reverb::Reverb::new())
+        .push("reverb", valrig_core::reverb::Reverb::new())
         .unwrap()
         .build();
     // Each of these would otherwise reach a module's own check and panic
@@ -596,8 +596,8 @@ fn a_rate_outside_the_band_is_refused_before_any_module_sees_it() {
     for rate in [
         0.0,
         500.0,
-        valverig_core::MIN_SAMPLE_RATE - 1.0,
-        valverig_core::MAX_SAMPLE_RATE + 1.0,
+        valrig_core::MIN_SAMPLE_RATE - 1.0,
+        valrig_core::MAX_SAMPLE_RATE + 1.0,
         f64::NAN,
         f64::INFINITY,
     ] {
@@ -608,9 +608,9 @@ fn a_rate_outside_the_band_is_refused_before_any_module_sees_it() {
         );
     }
     for rate in [
-        valverig_core::MIN_SAMPLE_RATE,
+        valrig_core::MIN_SAMPLE_RATE,
         48_000.0,
-        valverig_core::MAX_SAMPLE_RATE,
+        valrig_core::MAX_SAMPLE_RATE,
     ] {
         rack.prepare(rate, 128)
             .unwrap_or_else(|e| panic!("{rate}: {e}"));

@@ -15,9 +15,9 @@ use std::hint::black_box;
 use std::time::Instant;
 
 use common::{cabinet, impulse_response, lane_chain, model, noise};
-use valverig_core::cabinet::Cabinet;
-use valverig_core::dsp::convolution::{Convolver, partition_for};
-use valverig_core::rack::Rack;
+use valrig_core::cabinet::Cabinet;
+use valrig_core::dsp::convolution::{Convolver, partition_for};
+use valrig_core::rack::Rack;
 
 /// The measurement behind `partition_for`: steady-state throughput over
 /// cabinet-sized IRs at every partition size, as multiples of real time at

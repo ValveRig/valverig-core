@@ -1,21 +1,22 @@
-# valverig-core
+# valrig-core
 
-The ValveRig engine: a rack of audio modules, the controls you turn while it
+The Valrig engine: a rack of audio modules, the controls you turn while it
 runs, the DSP the modules are made of, and the `.rig` presets that describe
 a rack. Its `process()` allocates nothing and takes no lock.
 
-It runs `valverig-nam`'s captures and its own gate, compressor, tone
+It runs `valrig-nam`'s captures and its own gate, compressor, tone
 control, drive, chorus, phaser, delay, reverb and cabinet as modules, in
 series and in parallel lanes, and builds the whole rack from a `.rig`
-document. It opens no files and no devices: you load the data and hand it
-over.
+document. It opens no files: you load the data and hand it over. It opens no
+device either, unless you ask for the `io` feature, which adds the one
+module that does: an audio device opened, and a rack run in its callback.
 
 ```rust
-use valverig_core::capture::Capture;
-use valverig_core::eq::Tone;
-use valverig_core::gain::Gain;
-use valverig_core::rack::Rack;
-use valverig_nam::loader::Model;
+use valrig_core::capture::Capture;
+use valrig_core::eq::Tone;
+use valrig_core::gain::Gain;
+use valrig_core::rack::Rack;
+use valrig_nam::loader::Model;
 
 let (mut rack, controls) = Rack::builder()
     .push("input", Gain::new())?
@@ -42,12 +43,14 @@ Every stage also runs without a rack: `drive::Mono`, `reverb::Fdn`,
 ## Tests
 
 ```bash
-cargo test
-cargo test --release
+cargo test --all-features
+cargo test --release --all-features
+cargo test --release --all-features -- --ignored --nocapture   # also plays a tone on the default device
 ```
 
-Both, because SIMD and float behaviour differ between the two builds and
-the bit-exactness tests have to hold in each.
+Both builds, because SIMD and float behaviour differ between the two and the
+bit-exactness tests have to hold in each. Every feature, because the device
+side (`io`) is tested too: all but the last line needs no sound hardware.
 
 `assets/` holds four `.nam` captures and one `.rig` preset, so the tests run
 against a real capture and a real document without needing any other
@@ -191,7 +194,7 @@ for it.
 ```toml
 format_version = 1
 name = "Plexi + Tweed · Wide"
-author = "ValveRig"                # optional, as is `notes`
+author = "Valrig"                # optional, as is `notes`
 
 [assets.plexi]                     # what to load, by content, not by path
 kind = "nam"                       # "nam" or "ir"
@@ -234,6 +237,71 @@ for bit. Version 1 is the only version read or written.
 **Nothing panics on a bad document.** Every malformed input returns an
 `Error` naming the part at fault, and every count a document states is
 capped where it is still just text.
+
+### A device, with the `io` feature
+
+```toml
+valrig-core = { version = "0.0.1", features = ["io"] }
+```
+
+```rust
+use valrig_core::io::{Config, InputChannel, run};
+
+let stream = run(
+    Config {
+        sample_rate: 48_000,
+        block: 128,
+        live_input: true,
+        output_channels: 2,
+        output_device: None,   // the host's default
+        input_device: None,
+        input_channel: InputChannel::First,
+    },
+    // On the audio thread: no allocating, no locking, no logging, no waiting.
+    move |input, outputs| rack.process(input, outputs),
+)?;
+
+println!("playing on {}", stream.device);
+drop(stream);   // and the device is released
+```
+
+One closure, mono in and one or two channels out, with no queue in between,
+because a queue is latency and a guitarist hears it. The device decides how
+many frames it hands over, so whatever arrives is cut into pieces of at most
+`Config::block`: a rack never sees more than it was prepared for. It is off
+by default because a plugin or a worklet is handed its audio and has no use
+for a host's device layer; with it comes `cpal`, and on Linux ALSA's
+headers.
+
+**Nothing here resamples.** `Config::sample_rate` is the rate the rack
+itself needs. A device that does not offer it is an error rather than
+something to convert around, so a rack at another rate is converted at its
+own edges, with `dsp::resample`.
+
+**Live input is exactly one block late**, and there is no way to ask for
+less: input and output are two separate streams, and the ring between them
+is primed with one block of silence so the output never waits on the input
+callback that runs just after it.
+
+**Input and output are two clocks.** Use one device for both, or accept that
+two that disagree by even a few parts per million will slowly fill the ring
+or empty it, and the frames it cannot supply arrive as silence. Nothing here
+regulates that drift.
+
+**A non-finite sample never reaches the driver**, and denormals are flushed
+to zero on the audio thread. A rack that returns a NaN has a poisoned
+feedback structure and will not recover on its own: silence is the only
+honest thing to send a speaker.
+
+**Nothing is reported once a stream is running.** A device unplugged under
+the stream raises an error the host may deliver on the audio thread, where
+nothing can log it or allocate a message for it. Watch for the callback
+going quiet, then drop the `Stream` and open another: there is no reset and
+no route-change notification.
+
+**Configuration is checked before the host is touched**, so a block size of
+zero or a nonsense channel count out of a settings file is an error and not
+a panic on the audio thread.
 
 ## Licence
 

@@ -19,12 +19,12 @@
 //! the audio, and the right lifetime depends on whose thread it is.
 //!
 //! - A crate that **owns** the thread arms it once and leaves it: that is
-//!   [`flush_to_zero`], and it is what `valverig-core` does on each of the
+//!   [`flush_to_zero`], and it is what `valrig-core` does on each of the
 //!   worker threads its parallel lanes run on, threads that exist only to
 //!   run audio and that end with the rack.
 //! - A crate handed **someone else's** thread, a plugin's process block or
 //!   an offline loop, arms it for the length of the call and puts it back:
-//!   that is [`Restoring`], and it is what `valverig-core` does around each
+//!   that is [`Restoring`], and it is what `valrig-core` does around each
 //!   `Rack::process`.
 
 /// The floating-point mode as it stood before [`flush_to_zero`] changed it.

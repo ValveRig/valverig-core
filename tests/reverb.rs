@@ -7,7 +7,7 @@ mod common;
 use std::f32::consts::PI;
 
 use common::{SR, assert_same_bits, impulse, independent_of_block_grouping, ms, noise, rms, run};
-use valverig_core::reverb::Fdn as Reverb;
+use valrig_core::reverb::Fdn as Reverb;
 
 /// A wet-only reverb with the damping out of the way.
 fn wet(decay_s: f32) -> Reverb {

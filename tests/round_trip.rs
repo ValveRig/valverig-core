@@ -1,10 +1,8 @@
 //! Reading a document, walking it, changing it, and writing it back.
 
 use std::collections::BTreeMap;
-use valverig_core::Error;
-use valverig_core::preset::{
-    Asset, AssetKind, Lane, MAX_STAGES, Module, Preset, Stage, asset_hash,
-};
+use valrig_core::Error;
+use valrig_core::preset::{Asset, AssetKind, Lane, MAX_STAGES, Module, Preset, Stage, asset_hash};
 
 const WIDE: &str = include_str!("../assets/plexi-tweed-wide.rig");
 
@@ -23,7 +21,7 @@ fn module(type_id: &str, name: &str) -> Module {
 fn the_wide_rig_parses() {
     let p = Preset::parse(WIDE).unwrap();
     assert_eq!(p.name, "Plexi + Tweed · Wide");
-    assert_eq!(p.author.as_deref(), Some("ValveRig"));
+    assert_eq!(p.author.as_deref(), Some("Valrig"));
     assert_eq!(p.assets.len(), 3);
     assert_eq!(p.assets["plexi"].kind, AssetKind::Nam);
     assert_eq!(p.assets["plexi"].file.as_deref(), Some("a2.nam"));

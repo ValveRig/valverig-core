@@ -1,5 +1,5 @@
 # Every pull request runs the gates. A merge to main runs them again and
-# publishes, so a version on crates.io is one that passed review and CI.
+# releases, so a version on crates.io is one that passed review and CI.
 name: CI
 
 on:
@@ -22,41 +22,78 @@ jobs:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
 
+      # The `io` feature opens devices through cpal, which is ALSA here.
+      - name: System dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev
+
       - name: Formatting
         run: cargo fmt --check
       - name: Lints
         run: cargo clippy --all-targets --all-features -- -D warnings
       - name: Documentation
-        run: cargo doc --no-deps
+        run: cargo doc --no-deps --all-features
       # Both profiles: SIMD and float behaviour differ between them, and the
-      # numeric tests have to hold in the build that ships.
+      # numeric tests have to hold in the build that ships. Every feature:
+      # the device side's tests need no hardware.
       - name: Tests, debug
-        run: cargo test
+        run: cargo test --all-features
       - name: Tests, release
-        run: cargo test --release
+        run: cargo test --release --all-features
+      # As it is linked by default, without the device side.
       - name: Build
         run: cargo build --release
 
-  # The crate is built against its published dependencies rather than the
-  # checkouts beside it, which is how anyone else will consume it.
+  # A merge to main is a release: the crate goes to crates.io, the commit
+  # gets the version's tag, and GitHub gets a release that points at the
+  # crate. Each step looks first, so a merge that changes no version, or a
+  # run started again, does nothing twice.
   publish:
     needs: gates
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
-      - name: Already on crates.io?
-        id: check
+      - name: What is being released
+        id: crate
         run: |
           name=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
           version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
-          if cargo info "$name@$version" >/dev/null 2>&1; then
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # Asked of the registry itself: from inside the crate, `cargo info`
+          # answers for the checkout.
+          if curl -fsS -o /dev/null -A "$name release (github actions)" "https://crates.io/api/v1/crates/$name/$version"; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "$name $version is already published; nothing to do."
+            echo "$name $version is already on crates.io."
           else
             echo "publish=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Publish
-        if: steps.check.outputs.publish == 'true'
+      - name: Publish on crates.io
+        if: steps.crate.outputs.publish == 'true'
         run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Tag the commit and release it on GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ steps.crate.outputs.name }}
+          VERSION: ${{ steps.crate.outputs.version }}
+        run: |
+          tag="v$VERSION"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "$tag is already released."
+            exit 0
+          fi
+          {
+            echo "\`$NAME\` $VERSION, on crates.io: https://crates.io/crates/$NAME/$VERSION"
+            echo
+            echo '```toml'
+            echo "$NAME = \"$VERSION\""
+            echo '```'
+            echo
+            echo "Documentation: https://docs.rs/$NAME/$VERSION"
+          } > notes.md
+          gh release create "$tag" --target "$GITHUB_SHA" --title "$NAME $VERSION" --notes-file notes.md
