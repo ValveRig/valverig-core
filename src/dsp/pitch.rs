@@ -14,7 +14,7 @@
 //! rate.
 //!
 //! ```
-//! use valrig_core::dsp::pitch::Detector;
+//! use valverig_core::dsp::pitch::Detector;
 //!
 //! let mut detector = Detector::new(48_000.0, 60.0, 1_400.0);
 //! let low_e: Vec<f32> = (0..detector.window())

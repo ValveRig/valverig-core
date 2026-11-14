@@ -4,7 +4,7 @@
 mod common;
 
 use common::{SR, assert_same_bits, independent_of_block_grouping, noise, rms, run, sine};
-use valrig_core::eq::{BASS_HZ, MID_HZ, Mono as ThreeBand, TREBLE_HZ};
+use valverig_core::eq::{BASS_HZ, MID_HZ, Mono as ThreeBand, TREBLE_HZ};
 
 /// The steady-state gain at `hz`, in dB: the last 0.2 s of a 0.5 s sine, an
 /// integer number of periods at every frequency used below.

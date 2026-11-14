@@ -6,7 +6,7 @@
 mod common;
 
 use common::{SR, assert_same_bits, impulse, independent_of_block_grouping, noise, run};
-use valrig_core::delay::{Mono as Delay, TONE_OPEN_HZ};
+use valverig_core::delay::{Mono as Delay, TONE_OPEN_HZ};
 
 /// Half a second, feedback a half, the repeats as loud as the dry signal,
 /// nothing in the loop.

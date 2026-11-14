@@ -39,7 +39,7 @@
 //! of parameters. A [`Mono`] also runs on its own:
 //!
 //! ```
-//! use valrig_core::drive::Mono;
+//! use valverig_core::drive::Mono;
 //!
 //! let mut drive = Mono::new(48_000.0);
 //! drive.set_drive_db(18.0);

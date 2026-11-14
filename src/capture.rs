@@ -1,13 +1,13 @@
-//! The neural capture, `valrig-nam`'s [`Model`], as a module.
+//! The neural capture, `valverig-nam`'s [`Model`], as a module.
 
 use crate::dsp::decibels;
 use crate::node::Node;
 use crate::{Error, Result};
-use valrig_nam::loader::Model;
+use valverig_nam::loader::Model;
 
 /// A `.nam` capture in the rack.
 ///
-/// The host loads the model - `valrig-nam` reads the file - and hands it
+/// The host loads the model - `valverig-nam` reads the file - and hands it
 /// over. It runs at the rate it was trained at and no other: `prepare` at a
 /// different rate is an error, because nothing in the rack resamples; a
 /// host that runs at another rate converts at the rack's edges. And it is

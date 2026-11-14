@@ -1,10 +1,10 @@
-# valrig-core
+# valverig-core
 
-The Valrig engine: a rack of audio modules, the controls you turn while it
+The ValveRig engine: a rack of audio modules, the controls you turn while it
 runs, the DSP the modules are made of, and the `.rig` presets that describe
 a rack. Its `process()` allocates nothing and takes no lock.
 
-It runs `valrig-nam`'s captures and its own gate, compressor, tone
+It runs `valverig-nam`'s captures and its own gate, compressor, tone
 control, drive, chorus, phaser, delay, reverb and cabinet as modules, in
 series and in parallel lanes, and builds the whole rack from a `.rig`
 document. It opens no files: you load the data and hand it over. It opens no
@@ -12,11 +12,11 @@ device either, unless you ask for the `io` feature, which adds the one
 module that does: an audio device opened, and a rack run in its callback.
 
 ```rust
-use valrig_core::capture::Capture;
-use valrig_core::eq::Tone;
-use valrig_core::gain::Gain;
-use valrig_core::rack::Rack;
-use valrig_nam::loader::Model;
+use valverig_core::capture::Capture;
+use valverig_core::eq::Tone;
+use valverig_core::gain::Gain;
+use valverig_core::rack::Rack;
+use valverig_nam::loader::Model;
 
 let (mut rack, controls) = Rack::builder()
     .push("input", Gain::new())?
@@ -197,7 +197,7 @@ for it.
 ```toml
 format_version = 1
 name = "Plexi + Tweed · Wide"
-author = "Valrig"                # optional, as is `notes`
+author = "ValveRig"                # optional, as is `notes`
 
 [assets.plexi]                     # what to load, by content, not by path
 kind = "nam"                       # "nam" or "ir"
@@ -244,11 +244,11 @@ capped where it is still just text.
 ### A device, with the `io` feature
 
 ```toml
-valrig-core = { version = "0.0.1", features = ["io"] }
+valverig-core = { version = "0.0.2", features = ["io"] }
 ```
 
 ```rust
-use valrig_core::io::{Config, InputChannel, run};
+use valverig_core::io::{Config, InputChannel, run};
 
 let stream = run(
     Config {

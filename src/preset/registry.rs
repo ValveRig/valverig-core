@@ -25,7 +25,7 @@ use crate::rack::{Append, Controls, Lane, Rack};
 use crate::reverb::Reverb;
 use crate::tap::Tap;
 use crate::{Error, Result};
-use valrig_nam::loader::Model;
+use valverig_nam::loader::Model;
 
 /// An asset, loaded: what a resolver hands back for a label.
 #[derive(Debug)]

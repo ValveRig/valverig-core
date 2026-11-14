@@ -1,4 +1,4 @@
-//! The Valrig engine: a rack of modules, the controls on it, the DSP the
+//! The ValveRig engine: a rack of modules, the controls on it, the DSP the
 //! modules are made of, and the `.rig` presets that describe a rack.
 //!
 //! A plugin, an app or an audio worklet links this crate and gets
@@ -6,7 +6,7 @@
 //!
 //! - the modules: a [`gate`], a [`compressor`], a tone control in [`eq`],
 //!   a [`drive`], a [`chorus`], a [`phaser`], a [`delay`] and a [`reverb`],
-//!   each beside the DSP it runs; a [`capture`] of `valrig-nam`'s models,
+//!   each beside the DSP it runs; a [`capture`] of `valverig-nam`'s models,
 //!   a [`cabinet`], a smoothed [`gain`], a [`tap`] to the output, and a send
 //!   and a return over the rack's buses in [`bus`];
 //! - the [`node::Node`] contract every module answers to;
@@ -29,10 +29,10 @@
 //! # A rack
 //!
 //! ```
-//! use valrig_core::drive::Drive;
-//! use valrig_core::eq::Tone;
-//! use valrig_core::gain::Gain;
-//! use valrig_core::rack::Rack;
+//! use valverig_core::drive::Drive;
+//! use valverig_core::eq::Tone;
+//! use valverig_core::gain::Gain;
+//! use valverig_core::rack::Rack;
 //!
 //! let (mut rack, controls) = Rack::builder()
 //!     .push("input", Gain::new())?
@@ -47,7 +47,7 @@
 //! let dry = [0.1f32; 128];
 //! let mut wet = [0.0f32; 128];
 //! rack.process(&dry, &mut [&mut wet]);      // on the audio thread; allocation-free
-//! # Ok::<(), valrig_core::Error>(())
+//! # Ok::<(), valverig_core::Error>(())
 //! ```
 //!
 //! A capture and a cabinet join the same way, once the host has loaded
@@ -129,11 +129,17 @@ pub const MAX_SAMPLE_RATE: f64 = 768_000.0;
 
 #[cfg(test)]
 mod tests {
-    /// `valrig-nam` refuses a capture stating a rate outside the same
+    /// `valverig-nam` refuses a capture stating a rate outside the same
     /// band, so every capture it reads is one a rack here can run.
     #[test]
-    fn the_band_is_the_one_valrig_nam_reads_captures_in() {
-        assert_eq!(crate::MIN_SAMPLE_RATE, valrig_nam::format::MIN_SAMPLE_RATE);
-        assert_eq!(crate::MAX_SAMPLE_RATE, valrig_nam::format::MAX_SAMPLE_RATE);
+    fn the_band_is_the_one_valverig_nam_reads_captures_in() {
+        assert_eq!(
+            crate::MIN_SAMPLE_RATE,
+            valverig_nam::format::MIN_SAMPLE_RATE
+        );
+        assert_eq!(
+            crate::MAX_SAMPLE_RATE,
+            valverig_nam::format::MAX_SAMPLE_RATE
+        );
     }
 }

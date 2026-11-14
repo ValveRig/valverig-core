@@ -1,9 +1,9 @@
 //! The cabinet's cuts: out of the path at the ends of their ranges, where
 //! the cabinet is the convolver alone bit for bit; 12 dB an octave inside.
 
-use valrig_core::cabinet::Cabinet;
-use valrig_core::gain::Gain;
-use valrig_core::rack::Rack;
+use valverig_core::cabinet::Cabinet;
+use valverig_core::gain::Gain;
+use valverig_core::rack::Rack;
 
 const SR: f64 = 48_000.0;
 
@@ -17,7 +17,7 @@ fn rms(x: &[f32]) -> f32 {
     (x.iter().map(|v| v * v).sum::<f32>() / x.len() as f32).sqrt()
 }
 
-fn rack() -> (Rack, valrig_core::rack::Controls) {
+fn rack() -> (Rack, valverig_core::rack::Controls) {
     // A one-tap IR: the convolver is a wire, so what is left is the cuts.
     let (mut rack, controls) = Rack::builder()
         .push("input", Gain::new())

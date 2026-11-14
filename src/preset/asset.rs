@@ -57,7 +57,7 @@ impl AssetKind {
 /// identity; everything else is help.
 ///
 /// ```
-/// use valrig_core::preset::{asset_hash, Asset, AssetKind};
+/// use valverig_core::preset::{asset_hash, Asset, AssetKind};
 ///
 /// let asset = Asset {
 ///     kind: AssetKind::Nam,

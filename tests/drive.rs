@@ -5,7 +5,7 @@
 mod common;
 
 use common::{SR, goertzel, independent_of_block_grouping, noise, rms, run, sine, to_db};
-use valrig_core::drive::{BIAS, Mono as Drive, TONE_OPEN_HZ};
+use valverig_core::drive::{BIAS, Mono as Drive, TONE_OPEN_HZ};
 
 /// The last tenth of a second: 4,800 samples, a whole number of periods at
 /// every multiple of 10 Hz.

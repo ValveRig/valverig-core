@@ -63,16 +63,16 @@ fn allocations_during<F: FnOnce()>(f: F) -> usize {
 /// Each DSP stage on its own, every setting turning.
 mod stages {
     use super::allocations_during;
-    use valrig_core::chorus::Mono as Chorus;
-    use valrig_core::compressor::Mono as Compressor;
-    use valrig_core::delay::Mono as Delay;
-    use valrig_core::drive::Mono as Drive;
-    use valrig_core::dsp::convolution::Convolver;
-    use valrig_core::dsp::resample::Resampler;
-    use valrig_core::eq::Mono as ThreeBand;
-    use valrig_core::gate::Mono as Gate;
-    use valrig_core::phaser::Mono as Phaser;
-    use valrig_core::reverb::Fdn as Reverb;
+    use valverig_core::chorus::Mono as Chorus;
+    use valverig_core::compressor::Mono as Compressor;
+    use valverig_core::delay::Mono as Delay;
+    use valverig_core::drive::Mono as Drive;
+    use valverig_core::dsp::convolution::Convolver;
+    use valverig_core::dsp::resample::Resampler;
+    use valverig_core::eq::Mono as ThreeBand;
+    use valverig_core::gate::Mono as Gate;
+    use valverig_core::phaser::Mono as Phaser;
+    use valverig_core::reverb::Fdn as Reverb;
 
     /// Block lengths that never repeat in step with anything.
     const SCHEDULE: [usize; 6] = [1, 7, 512, 3, 13, 64];
@@ -245,15 +245,15 @@ mod stages {
 mod racks {
     use super::allocations_during;
     use super::common::{chain, lane_chain, model};
-    use valrig_core::bus::{BusReturn, BusSend};
-    use valrig_core::cabinet::Cabinet;
-    use valrig_core::chorus::Chorus;
-    use valrig_core::delay::Delay;
-    use valrig_core::drive::Drive;
-    use valrig_core::gain::Gain;
-    use valrig_core::phaser::Phaser;
-    use valrig_core::rack::{self, Lane, Rack};
-    use valrig_core::tap::Tap;
+    use valverig_core::bus::{BusReturn, BusSend};
+    use valverig_core::cabinet::Cabinet;
+    use valverig_core::chorus::Chorus;
+    use valverig_core::delay::Delay;
+    use valverig_core::drive::Drive;
+    use valverig_core::gain::Gain;
+    use valverig_core::phaser::Phaser;
+    use valverig_core::rack::{self, Lane, Rack};
+    use valverig_core::tap::Tap;
 
     #[test]
     fn process_and_reset_do_not_allocate() {

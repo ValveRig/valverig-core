@@ -6,10 +6,10 @@
 mod common;
 
 use common::{assert_same_bits, from_db, moved_and_back, noise, run_rack};
-use valrig_core::delay::Delay;
-use valrig_core::gain::Gain;
-use valrig_core::rack::{Lane, Rack};
-use valrig_core::tap::Tap;
+use valverig_core::delay::Delay;
+use valverig_core::gain::Gain;
+use valverig_core::rack::{Lane, Rack};
+use valverig_core::tap::Tap;
 
 #[test]
 fn a_tap_adds_its_point_in_the_chain_to_the_output() {

@@ -2,13 +2,13 @@
 //! a stage are padded with a delay up to the longest, so the mix adds what
 //! left the split together, on the caller's thread and on workers alike.
 
-use valrig_core::Result;
+use valverig_core::Result;
 mod common;
 
 use common::noise;
-use valrig_core::gain::Gain;
-use valrig_core::node::Node;
-use valrig_core::rack::{Lane, Rack};
+use valverig_core::gain::Gain;
+use valverig_core::node::Node;
+use valverig_core::rack::{Lane, Rack};
 
 /// A wire that is `k` frames late, and says so.
 #[derive(Debug)]

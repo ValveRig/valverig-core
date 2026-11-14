@@ -22,7 +22,7 @@ use std::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 /// many samples they moved, which is the only way to notice.
 ///
 /// ```
-/// use valrig_core::io::ring::Ring;
+/// use valverig_core::io::ring::Ring;
 ///
 /// let ring = Ring::new(1000);
 /// assert_eq!(ring.capacity(), 1024, "rounded up to a power of two");

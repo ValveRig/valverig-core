@@ -10,15 +10,15 @@
 
 use std::path::Path;
 
-use valrig_core::cabinet::Cabinet;
-use valrig_core::capture::Capture;
-use valrig_core::compressor::Compressor;
-use valrig_core::eq::Tone;
-use valrig_core::gain::Gain;
-use valrig_core::gate::Gate;
-use valrig_core::rack::{Controls, Lane, Rack};
-use valrig_core::reverb::Reverb;
-use valrig_nam::loader::Model;
+use valverig_core::cabinet::Cabinet;
+use valverig_core::capture::Capture;
+use valverig_core::compressor::Compressor;
+use valverig_core::eq::Tone;
+use valverig_core::gain::Gain;
+use valverig_core::gate::Gate;
+use valverig_core::rack::{Controls, Lane, Rack};
+use valverig_core::reverb::Reverb;
+use valverig_nam::loader::Model;
 
 /// The rate the stage tests run at, unless a test says otherwise.
 pub const SR: f64 = 48_000.0;
@@ -168,7 +168,7 @@ pub fn cabinet(seed: u64, len: usize) -> Vec<f32> {
 }
 
 /// One of the reference captures in `assets/models`: copies of fixtures
-/// from `valrig-nam`, whose README says where each one comes from.
+/// from `valverig-nam`, whose README says where each one comes from.
 pub fn model(name: &str) -> Model {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("assets/models")

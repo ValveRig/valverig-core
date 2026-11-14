@@ -8,10 +8,10 @@
 //! The width is fixed at `prepare`, like the rate: the rack knows what the
 //! signal is at every point and tells each module, so a mono primitive is
 //! run once per channel by its adapter, and a module that cannot be
-//! widened, a capture, refuses. A capture from `valrig-nam` and the
+//! widened, a capture, refuses. A capture from `valverig-nam` and the
 //! stages in [`dsp`](crate::dsp) keep their own mono APIs and are wrapped
-//! by the modules in this crate, so `valrig-nam` does not have to depend
-//! on `valrig-core` to be usable from it.
+//! by the modules in this crate, so `valverig-nam` does not have to depend
+//! on `valverig-core` to be usable from it.
 
 use crate::error::Result;
 use std::sync::Arc;

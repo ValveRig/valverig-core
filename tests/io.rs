@@ -2,7 +2,7 @@
 //! thing that cannot.
 #![cfg(feature = "io")]
 
-use valrig_core::io::{Config, Error, InputChannel, MAX_BLOCK, run};
+use valverig_core::io::{Config, Error, InputChannel, MAX_BLOCK, run};
 
 fn config() -> Config {
     Config {

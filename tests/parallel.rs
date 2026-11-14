@@ -5,8 +5,8 @@
 mod common;
 
 use common::{lane_chain, model, noise};
-use valrig_core::cabinet::Cabinet;
-use valrig_core::rack::{self, Rack};
+use valverig_core::cabinet::Cabinet;
+use valverig_core::rack::{self, Rack};
 
 fn rig(three: bool) -> (Rack, rack::Controls) {
     let ir: Vec<f32> = (0..1024)

@@ -4,13 +4,13 @@
 # bypassed module, and presentation hints.
 #
 # The two capture hashes are the real content addresses of the reference
-# models in valrig-nam; the cabinet is a placeholder address, since no
+# models in valverig-nam; the cabinet is a placeholder address, since no
 # impulse response ships with this crate. Nothing here opens a file: a
 # resolver decides where to look, and the hash is what confirms it looked in
 # the right place.
 format_version = 1
 name = "Plexi + Tweed · Wide"
-author = "Valrig"
+author = "ValveRig"
 notes = "Lane A hard left, lane B hard right: the stereo wide rig."
 
 [assets.plexi]

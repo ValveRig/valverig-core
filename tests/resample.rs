@@ -6,7 +6,7 @@
 mod common;
 
 use common::{goertzel, rms, sine_at as sine, to_db};
-use valrig_core::dsp::resample::{Resampler, TAPS};
+use valverig_core::dsp::resample::{Resampler, TAPS};
 
 /// Everything `x` makes, pushed in `chunks` and pulled after each.
 fn convert(r: &mut Resampler, x: &[f32], chunks: &[usize]) -> Vec<f32> {

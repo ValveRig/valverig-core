@@ -6,9 +6,9 @@
 mod common;
 
 use common::{assert_same_bits, from_db, moved_and_back, noise, run_rack};
-use valrig_core::bus::{BusReturn, BusSend};
-use valrig_core::gain::Gain;
-use valrig_core::rack::{Lane, Rack};
+use valverig_core::bus::{BusReturn, BusSend};
+use valverig_core::gain::Gain;
+use valverig_core::rack::{Lane, Rack};
 
 #[test]
 fn a_return_adds_what_a_send_before_it_put_on_the_bus() {

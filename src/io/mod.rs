@@ -22,7 +22,7 @@
 //! ```no_run
 //! // Opening a device needs hardware, so this compiles but does not run
 //! // under `cargo test`.
-//! use valrig_core::io::{Config, InputChannel, run};
+//! use valverig_core::io::{Config, InputChannel, run};
 //!
 //! let mut amp = my_amp();
 //! let stream = run(
@@ -44,7 +44,7 @@
 //! # fn my_amp() -> Amp { Amp }
 //! # struct Amp;
 //! # impl Amp { fn process(&mut self, _: &[f32], _: &mut [&mut [f32]]) {} }
-//! # Ok::<(), valrig_core::io::Error>(())
+//! # Ok::<(), valverig_core::io::Error>(())
 //! ```
 //!
 //! # What a caller has to know

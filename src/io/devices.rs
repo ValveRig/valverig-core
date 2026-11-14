@@ -70,7 +70,7 @@ fn describe(
 /// ```no_run
 /// // Needs a host with devices on it, so this compiles but does not run
 /// // under `cargo test`.
-/// let devices = valrig_core::io::devices();
+/// let devices = valverig_core::io::devices();
 /// for output in &devices.outputs {
 ///     println!("{} ({} channels) {:?}", output.name, output.channels, output.sample_rates);
 /// }
